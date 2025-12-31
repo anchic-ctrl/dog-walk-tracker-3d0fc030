@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Dog, WalkStatus } from '@/types/dog';
+import { Dog, WalkStatus, WalkRound } from '@/types/dog';
 import { sampleDogs } from '@/data/sampleDogs';
 
 interface DogsContextType {
   dogs: Dog[];
+  currentRound: WalkRound;
+  setCurrentRound: (round: WalkRound) => void;
   getDog: (id: string) => Dog | undefined;
   startWalk: (id: string) => void;
   endWalk: (id: string) => void;
@@ -15,6 +17,7 @@ const DogsContext = createContext<DogsContextType | undefined>(undefined);
 
 export function DogsProvider({ children }: { children: ReactNode }) {
   const [dogs, setDogs] = useState<Dog[]>(sampleDogs);
+  const [currentRound, setCurrentRound] = useState<WalkRound>(1);
 
   const getDog = (id: string) => dogs.find(dog => dog.id === id);
 
@@ -23,10 +26,16 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       if (dog.id === id) {
         return {
           ...dog,
-          walkStatus: 'walking' as WalkStatus,
-          currentWalk: {
-            startTime: new Date(),
-            endTime: null,
+          roundStatuses: {
+            ...dog.roundStatuses,
+            [currentRound]: 'walking' as WalkStatus,
+          },
+          roundWalks: {
+            ...dog.roundWalks,
+            [currentRound]: {
+              startTime: new Date(),
+              endTime: null,
+            },
           },
         };
       }
@@ -39,10 +48,16 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       if (dog.id === id) {
         return {
           ...dog,
-          walkStatus: 'finished' as WalkStatus,
-          currentWalk: {
-            ...dog.currentWalk,
-            endTime: new Date(),
+          roundStatuses: {
+            ...dog.roundStatuses,
+            [currentRound]: 'finished' as WalkStatus,
+          },
+          roundWalks: {
+            ...dog.roundWalks,
+            [currentRound]: {
+              ...dog.roundWalks[currentRound],
+              endTime: new Date(),
+            },
           },
         };
       }
@@ -55,9 +70,12 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       if (dog.id === id) {
         return {
           ...dog,
-          currentWalk: {
-            ...dog.currentWalk,
-            [type === 'start' ? 'startTime' : 'endTime']: time,
+          roundWalks: {
+            ...dog.roundWalks,
+            [currentRound]: {
+              ...dog.roundWalks[currentRound],
+              [type === 'start' ? 'startTime' : 'endTime']: time,
+            },
           },
         };
       }
@@ -70,10 +88,16 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       if (dog.id === id) {
         return {
           ...dog,
-          walkStatus: 'idle' as WalkStatus,
-          currentWalk: {
-            startTime: null,
-            endTime: null,
+          roundStatuses: {
+            ...dog.roundStatuses,
+            [currentRound]: 'idle' as WalkStatus,
+          },
+          roundWalks: {
+            ...dog.roundWalks,
+            [currentRound]: {
+              startTime: null,
+              endTime: null,
+            },
           },
         };
       }
@@ -82,7 +106,16 @@ export function DogsProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <DogsContext.Provider value={{ dogs, getDog, startWalk, endWalk, updateWalkTime, resetWalk }}>
+    <DogsContext.Provider value={{ 
+      dogs, 
+      currentRound, 
+      setCurrentRound, 
+      getDog, 
+      startWalk, 
+      endWalk, 
+      updateWalkTime, 
+      resetWalk 
+    }}>
       {children}
     </DogsContext.Provider>
   );

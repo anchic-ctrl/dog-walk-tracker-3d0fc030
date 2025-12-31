@@ -6,9 +6,9 @@ interface FloorFilterProps {
 }
 
 const floors = [
-  { value: 'all' as const, label: 'All' },
-  { value: '1F' as const, label: '1F' },
-  { value: '2F' as const, label: '2F' },
+  { value: 'all' as const, label: '全部' },
+  { value: '1F' as const, label: '1樓' },
+  { value: '2F' as const, label: '2樓' },
 ];
 
 export function FloorFilter({ selected, onChange }: FloorFilterProps) {

@@ -6,21 +6,25 @@ import { useDogs } from '@/context/DogsContext';
 import { useNavigate } from 'react-router-dom';
 import { Play, Square, RotateCcw, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { zhTW } from 'date-fns/locale';
 
 interface DogCardProps {
   dog: Dog;
 }
 
 export function DogCard({ dog }: DogCardProps) {
-  const { startWalk, endWalk, resetWalk } = useDogs();
+  const { startWalk, endWalk, resetWalk, currentRound } = useDogs();
   const navigate = useNavigate();
+
+  const currentStatus = dog.roundStatuses[currentRound];
+  const currentWalk = dog.roundWalks[currentRound];
 
   const hasWarnings = dog.walkingNotes.needsMuzzle || 
                       dog.walkingNotes.mustWalkAlone || 
                       dog.walkingNotes.reactiveToOtherDogs;
 
-  const walkDuration = dog.currentWalk.startTime
-    ? formatDistanceToNow(dog.currentWalk.startTime, { addSuffix: false })
+  const walkDuration = currentWalk.startTime
+    ? formatDistanceToNow(currentWalk.startTime, { addSuffix: false, locale: zhTW })
     : null;
 
   return (
@@ -47,10 +51,10 @@ export function DogCard({ dog }: DogCardProps) {
             >
               <h3 className="font-semibold text-lg leading-tight">{dog.name}</h3>
               <p className="text-sm text-muted-foreground">
-                Room {dog.roomNumber} · {dog.floor}
+                {dog.roomNumber} 號房 · {dog.floor === '1F' ? '1樓' : '2樓'}
               </p>
             </button>
-            <StatusBadge status={dog.walkStatus} />
+            <StatusBadge status={currentStatus} />
           </div>
 
           {/* Warnings */}
@@ -59,18 +63,18 @@ export function DogCard({ dog }: DogCardProps) {
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span className="text-xs font-medium truncate">
                 {[
-                  dog.walkingNotes.needsMuzzle && 'Muzzle',
-                  dog.walkingNotes.mustWalkAlone && 'Walk alone',
-                  dog.walkingNotes.reactiveToOtherDogs && 'Reactive',
+                  dog.walkingNotes.needsMuzzle && '需戴口罩',
+                  dog.walkingNotes.mustWalkAlone && '須單獨散步',
+                  dog.walkingNotes.reactiveToOtherDogs && '對其他狗有反應',
                 ].filter(Boolean).join(' · ')}
               </span>
             </div>
           )}
 
           {/* Walk duration */}
-          {dog.walkStatus === 'walking' && walkDuration && (
+          {currentStatus === 'walking' && walkDuration && (
             <p className="text-sm text-status-walking font-medium mt-2">
-              Walking for {walkDuration}
+              已散步 {walkDuration}
             </p>
           )}
         </div>
@@ -78,35 +82,35 @@ export function DogCard({ dog }: DogCardProps) {
 
       {/* Actions */}
       <div className="flex gap-2 mt-4">
-        {dog.walkStatus === 'idle' && (
+        {currentStatus === 'idle' && (
           <Button
             onClick={() => startWalk(dog.id)}
             className="flex-1 h-12 text-base font-semibold bg-primary hover:bg-primary/90"
           >
             <Play className="w-5 h-5 mr-2" />
-            Start Walk
+            開始散步
           </Button>
         )}
 
-        {dog.walkStatus === 'walking' && (
+        {currentStatus === 'walking' && (
           <Button
             onClick={() => endWalk(dog.id)}
             variant="secondary"
             className="flex-1 h-12 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
           >
             <Square className="w-5 h-5 mr-2" />
-            End Walk
+            結束散步
           </Button>
         )}
 
-        {dog.walkStatus === 'finished' && (
+        {currentStatus === 'finished' && (
           <Button
             onClick={() => resetWalk(dog.id)}
             variant="outline"
             className="flex-1 h-12 text-base font-semibold"
           >
             <RotateCcw className="w-5 h-5 mr-2" />
-            Reset
+            重置
           </Button>
         )}
 
@@ -115,7 +119,7 @@ export function DogCard({ dog }: DogCardProps) {
           variant="outline"
           className="h-12 px-4"
         >
-          Details
+          詳細資料
         </Button>
       </div>
     </Card>
