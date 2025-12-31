@@ -9,17 +9,17 @@ interface StatusBadgeProps {
 
 const statusConfig = {
   idle: {
-    label: 'Not Started',
+    label: '尚未開始',
     icon: Circle,
     className: 'bg-status-idle-bg text-status-idle',
   },
   walking: {
-    label: 'Walking',
+    label: '散步中',
     icon: Play,
     className: 'bg-status-walking-bg text-status-walking animate-pulse-soft',
   },
   finished: {
-    label: 'Finished',
+    label: '本輪已完成',
     icon: CheckCircle,
     className: 'bg-status-finished-bg text-status-finished',
   },

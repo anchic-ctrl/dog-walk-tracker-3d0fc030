@@ -1,5 +1,6 @@
 export type WalkStatus = 'idle' | 'walking' | 'finished';
 export type DogSize = 'S' | 'M' | 'L';
+export type WalkRound = 1 | 2 | 3;
 
 export interface WalkingNotes {
   pullsOnLeash: boolean;
@@ -28,6 +29,18 @@ export interface WalkRecord {
   endTime: Date | null;
 }
 
+export interface RoundWalks {
+  1: WalkRecord;
+  2: WalkRecord;
+  3: WalkRecord;
+}
+
+export interface RoundStatuses {
+  1: WalkStatus;
+  2: WalkStatus;
+  3: WalkStatus;
+}
+
 export interface Dog {
   id: string;
   name: string;
@@ -35,8 +48,8 @@ export interface Dog {
   roomNumber: string;
   floor: '1F' | '2F';
   size: DogSize;
-  walkStatus: WalkStatus;
-  currentWalk: WalkRecord;
+  roundStatuses: RoundStatuses;
+  roundWalks: RoundWalks;
   walkingNotes: WalkingNotes;
   food: FoodInfo;
   medication: MedicationInfo;
