@@ -80,7 +80,7 @@ export default function DogProfile() {
             <div className="space-y-1 text-sm text-muted-foreground">
               <p className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                {dog.roomNumber} 號房 · {dog.floor === '1F' ? '1樓' : '2樓'}
+                {dog.roomColor}{dog.roomNumber} · {dog.indoorSpace}
               </p>
               <p className="flex items-center gap-2">
                 <Ruler className="w-4 h-4" />
@@ -98,7 +98,7 @@ export default function DogProfile() {
               className="flex-1 h-14 text-base font-semibold"
             >
               <Play className="w-5 h-5 mr-2" />
-              開始散步
+              開始第 {currentRound} 輪散步
             </Button>
           )}
           {currentStatus === 'walking' && (
@@ -107,7 +107,7 @@ export default function DogProfile() {
               className="flex-1 h-14 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
             >
               <Square className="w-5 h-5 mr-2" />
-              結束散步
+              結束第 {currentRound} 輪散步
             </Button>
           )}
           {currentStatus === 'finished' && (
@@ -117,7 +117,7 @@ export default function DogProfile() {
               className="flex-1 h-14 text-base font-semibold"
             >
               <RotateCcw className="w-5 h-5 mr-2" />
-              重置本輪散步
+              重置第 {currentRound} 輪
             </Button>
           )}
         </div>
