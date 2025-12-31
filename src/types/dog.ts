@@ -41,12 +41,16 @@ export interface RoundStatuses {
   3: WalkStatus;
 }
 
+export type RoomColor = '黃' | '綠' | '藍' | '紅';
+export type IndoorSpace = '1樓客廳' | '2樓大房間' | '2樓小房間';
+
 export interface Dog {
   id: string;
   name: string;
   photo: string;
-  roomNumber: string;
-  floor: '1F' | '2F';
+  roomColor: RoomColor;
+  roomNumber: 1 | 2 | 3;
+  indoorSpace: IndoorSpace;
   size: DogSize;
   roundStatuses: RoundStatuses;
   roundWalks: RoundWalks;

@@ -1,32 +1,35 @@
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { RoomColor } from '@/types/dog';
 
 interface FloorFilterProps {
-  selected: 'all' | '1F' | '2F';
-  onChange: (floor: 'all' | '1F' | '2F') => void;
+  selected: 'all' | RoomColor;
+  onChange: (filter: 'all' | RoomColor) => void;
 }
 
-const floors = [
-  { value: 'all' as const, label: '全部' },
-  { value: '1F' as const, label: '1樓' },
-  { value: '2F' as const, label: '2樓' },
+const colorOptions: { value: 'all' | RoomColor; label: string; bgClass: string }[] = [
+  { value: 'all', label: '全部', bgClass: '' },
+  { value: '黃', label: '黃區', bgClass: 'bg-yellow-400' },
+  { value: '綠', label: '綠區', bgClass: 'bg-green-500' },
+  { value: '藍', label: '藍區', bgClass: 'bg-blue-500' },
+  { value: '紅', label: '紅區', bgClass: 'bg-red-500' },
 ];
 
 export function FloorFilter({ selected, onChange }: FloorFilterProps) {
   return (
-    <div className="flex gap-2 p-1 bg-muted rounded-lg">
-      {floors.map((floor) => (
-        <button
-          key={floor.value}
-          onClick={() => onChange(floor.value)}
-          className={cn(
-            'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors touch-action-manipulation',
-            selected === floor.value
-              ? 'bg-card text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
+    <div className="flex gap-2 overflow-x-auto pb-1">
+      {colorOptions.map((option) => (
+        <Button
+          key={option.value}
+          variant={selected === option.value ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => onChange(option.value)}
+          className="shrink-0"
         >
-          {floor.label}
-        </button>
+          {option.bgClass && (
+            <span className={`w-3 h-3 rounded-full ${option.bgClass} mr-1.5`} />
+          )}
+          {option.label}
+        </Button>
       ))}
     </div>
   );

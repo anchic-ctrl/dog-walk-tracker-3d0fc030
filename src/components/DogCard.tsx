@@ -51,7 +51,7 @@ export function DogCard({ dog }: DogCardProps) {
             >
               <h3 className="font-semibold text-lg leading-tight">{dog.name}</h3>
               <p className="text-sm text-muted-foreground">
-                {dog.roomNumber} 號房 · {dog.floor === '1F' ? '1樓' : '2樓'}
+                {dog.roomColor}{dog.roomNumber} · {dog.indoorSpace}
               </p>
             </button>
             <StatusBadge status={currentStatus} />
@@ -88,7 +88,7 @@ export function DogCard({ dog }: DogCardProps) {
             className="flex-1 h-12 text-base font-semibold bg-primary hover:bg-primary/90"
           >
             <Play className="w-5 h-5 mr-2" />
-            開始散步
+            開始第 {currentRound} 輪散步
           </Button>
         )}
 
@@ -99,7 +99,7 @@ export function DogCard({ dog }: DogCardProps) {
             className="flex-1 h-12 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
           >
             <Square className="w-5 h-5 mr-2" />
-            結束散步
+            結束第 {currentRound} 輪散步
           </Button>
         )}
 
@@ -110,7 +110,7 @@ export function DogCard({ dog }: DogCardProps) {
             className="flex-1 h-12 text-base font-semibold"
           >
             <RotateCcw className="w-5 h-5 mr-2" />
-            重置
+            重置第 {currentRound} 輪
           </Button>
         )}
 
