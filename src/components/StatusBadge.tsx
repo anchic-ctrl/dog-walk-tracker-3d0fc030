@@ -1,0 +1,44 @@
+import { WalkStatus } from '@/types/dog';
+import { cn } from '@/lib/utils';
+import { Circle, Play, CheckCircle } from 'lucide-react';
+
+interface StatusBadgeProps {
+  status: WalkStatus;
+  className?: string;
+}
+
+const statusConfig = {
+  idle: {
+    label: 'Not Started',
+    icon: Circle,
+    className: 'bg-status-idle-bg text-status-idle',
+  },
+  walking: {
+    label: 'Walking',
+    icon: Play,
+    className: 'bg-status-walking-bg text-status-walking animate-pulse-soft',
+  },
+  finished: {
+    label: 'Finished',
+    icon: CheckCircle,
+    className: 'bg-status-finished-bg text-status-finished',
+  },
+};
+
+export function StatusBadge({ status, className }: StatusBadgeProps) {
+  const config = statusConfig[status];
+  const Icon = config.icon;
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold',
+        config.className,
+        className
+      )}
+    >
+      <Icon className="w-3 h-3" />
+      {config.label}
+    </span>
+  );
+}
