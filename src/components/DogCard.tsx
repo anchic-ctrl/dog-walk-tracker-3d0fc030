@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useDogs } from '@/context/DogsContext';
 import { useNavigate } from 'react-router-dom';
-import { Play, Square, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Play, Square, AlertTriangle, Home } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
@@ -13,19 +13,31 @@ interface DogCardProps {
 }
 
 export function DogCard({ dog }: DogCardProps) {
-  const { startWalk, endWalk, resetWalk, currentRound } = useDogs();
+  const { startActivity, endActivity, currentRound } = useDogs();
   const navigate = useNavigate();
 
-  const currentStatus = dog.roundStatuses[currentRound];
-  const currentWalk = dog.roundWalks[currentRound];
+  const walkStatus = dog.walkStatuses[currentRound];
+  const indoorStatus = dog.indoorStatuses[currentRound];
+  const walkRecord = dog.walkRecords[currentRound];
+  const indoorRecord = dog.indoorRecords[currentRound];
 
   const hasWarnings = dog.walkingNotes.needsMuzzle || 
                       dog.walkingNotes.mustWalkAlone || 
                       dog.walkingNotes.reactiveToOtherDogs;
 
-  const walkDuration = currentWalk.startTime
-    ? formatDistanceToNow(currentWalk.startTime, { addSuffix: false, locale: zhTW })
+  const walkDuration = walkRecord.startTime && walkStatus === 'active'
+    ? formatDistanceToNow(walkRecord.startTime, { addSuffix: false, locale: zhTW })
     : null;
+
+  const indoorDuration = indoorRecord.startTime && indoorStatus === 'active'
+    ? formatDistanceToNow(indoorRecord.startTime, { addSuffix: false, locale: zhTW })
+    : null;
+
+  // Count completed activities
+  const walkCount = Object.values(dog.walkStatuses).filter(s => s === 'finished').length + 
+                    (walkStatus === 'active' ? 1 : 0);
+  const indoorCount = Object.values(dog.indoorStatuses).filter(s => s === 'finished').length + 
+                      (indoorStatus === 'active' ? 1 : 0);
 
   return (
     <Card className="p-4 touch-action-manipulation">
@@ -54,7 +66,14 @@ export function DogCard({ dog }: DogCardProps) {
                 {dog.roomColor}{dog.roomNumber} · {dog.indoorSpace}
               </p>
             </button>
-            <StatusBadge status={currentStatus} />
+            <div className="flex flex-col gap-1 items-end">
+              {walkCount > 0 && (
+                <span className="text-xs font-medium text-status-finished">散步 {walkCount} 次</span>
+              )}
+              {indoorCount > 0 && (
+                <span className="text-xs font-medium text-primary">放風 {indoorCount} 次</span>
+              )}
+            </div>
           </div>
 
           {/* Warnings */}
@@ -71,57 +90,70 @@ export function DogCard({ dog }: DogCardProps) {
             </div>
           )}
 
-          {/* Walk duration */}
-          {currentStatus === 'walking' && walkDuration && (
-            <p className="text-sm text-status-walking font-medium mt-2">
-              已散步 {walkDuration}
-            </p>
-          )}
+          {/* Activity Status */}
+          <div className="flex gap-2 mt-2">
+            {walkStatus === 'active' && walkDuration && (
+              <StatusBadge status="active" label={`散步中 ${walkDuration}`} />
+            )}
+            {indoorStatus === 'active' && indoorDuration && (
+              <StatusBadge status="active" label={`放風中 ${indoorDuration}`} />
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-2 mt-4">
-        {currentStatus === 'idle' && (
+      {/* Actions - Two columns for walk and indoor */}
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        {/* Walk Button */}
+        {walkStatus === 'active' ? (
           <Button
-            onClick={() => startWalk(dog.id)}
-            className="flex-1 h-12 text-base font-semibold bg-primary hover:bg-primary/90"
-          >
-            <Play className="w-5 h-5 mr-2" />
-            開始第 {currentRound} 輪散步
-          </Button>
-        )}
-
-        {currentStatus === 'walking' && (
-          <Button
-            onClick={() => endWalk(dog.id)}
+            onClick={() => endActivity(dog.id, 'walk')}
             variant="secondary"
-            className="flex-1 h-12 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
+            className="h-12 text-sm font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
           >
-            <Square className="w-5 h-5 mr-2" />
-            結束第 {currentRound} 輪散步
+            <Square className="w-4 h-4 mr-1.5" />
+            結束散步
           </Button>
-        )}
-
-        {currentStatus === 'finished' && (
+        ) : (
           <Button
-            onClick={() => resetWalk(dog.id)}
-            variant="outline"
-            className="flex-1 h-12 text-base font-semibold"
+            onClick={() => startActivity(dog.id, 'walk')}
+            className="h-12 text-sm font-semibold"
           >
-            <RotateCcw className="w-5 h-5 mr-2" />
-            重置第 {currentRound} 輪
+            <Play className="w-4 h-4 mr-1.5" />
+            開始散步
           </Button>
         )}
 
-        <Button
-          onClick={() => navigate(`/dog/${dog.id}`)}
-          variant="outline"
-          className="h-12 px-4"
-        >
-          詳細資料
-        </Button>
+        {/* Indoor Button */}
+        {indoorStatus === 'active' ? (
+          <Button
+            onClick={() => endActivity(dog.id, 'indoor')}
+            variant="secondary"
+            className="h-12 text-sm font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
+          >
+            <Square className="w-4 h-4 mr-1.5" />
+            結束放風
+          </Button>
+        ) : (
+          <Button
+            onClick={() => startActivity(dog.id, 'indoor')}
+            variant="outline"
+            className="h-12 text-sm font-semibold"
+          >
+            <Home className="w-4 h-4 mr-1.5" />
+            開始放風
+          </Button>
+        )}
       </div>
+
+      {/* Detail Link */}
+      <Button
+        onClick={() => navigate(`/dog/${dog.id}`)}
+        variant="ghost"
+        className="w-full mt-2 text-muted-foreground"
+      >
+        查看詳細資料
+      </Button>
     </Card>
   );
 }
