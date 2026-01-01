@@ -1,16 +1,19 @@
 import { useDogs } from '@/context/DogsContext';
 import { DogCard } from '@/components/DogCard';
 import { Header } from '@/components/Header';
+import { format } from 'date-fns';
+import { zhTW } from 'date-fns/locale';
 
 export default function WalkBoard() {
   const { dogs, currentRound } = useDogs();
 
+  const today = format(new Date(), 'M月d日 EEEE', { locale: zhTW });
   const walkingCount = dogs.filter((d) => d.walkStatuses[currentRound] === 'active').length;
   const indoorCount = dogs.filter((d) => d.indoorStatuses[currentRound] === 'active').length;
 
   return (
     <div className="min-h-screen bg-background">
-      <Header title={`狗狗散步板 · 第 ${currentRound}/3 輪`} />
+      <Header title={`${today} · 第 ${currentRound}/3 輪`} />
       
       <main className="px-4 pb-8">
         {/* Stats */}
