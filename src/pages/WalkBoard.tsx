@@ -5,15 +5,15 @@ import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
 export default function WalkBoard() {
-  const { dogs, currentRound } = useDogs();
+  const { dogs } = useDogs();
+  const today = format(new Date(), 'yyyy年M月d日 EEEE', { locale: zhTW });
 
-  const today = format(new Date(), 'M月d日 EEEE', { locale: zhTW });
-  const walkingCount = dogs.filter((d) => d.walkStatuses[currentRound] === 'active').length;
-  const indoorCount = dogs.filter((d) => d.indoorStatuses[currentRound] === 'active').length;
+  const walkingCount = dogs.filter((d) => d.currentWalkId !== null).length;
+  const indoorCount = dogs.filter((d) => d.currentIndoorId !== null).length;
 
   return (
     <div className="min-h-screen bg-background">
-      <Header title={`${today} · 第 ${currentRound}/3 輪`} />
+      <Header title={today} />
       
       <main className="px-4 pb-8">
         {/* Stats */}

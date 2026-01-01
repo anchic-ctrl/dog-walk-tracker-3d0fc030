@@ -1,48 +1,44 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Dog, ActivityStatus, ActivityType, WalkRound } from '@/types/dog';
+import { Dog, ActivityType, ActivityRecord } from '@/types/dog';
 import { sampleDogs } from '@/data/sampleDogs';
 
 interface DogsContextType {
   dogs: Dog[];
-  currentRound: WalkRound;
-  setCurrentRound: (round: WalkRound) => void;
   getDog: (id: string) => Dog | undefined;
   startActivity: (id: string, type: ActivityType) => void;
   endActivity: (id: string, type: ActivityType) => void;
+  updateRecord: (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null) => void;
+  deleteRecord: (dogId: string, type: ActivityType, recordId: string) => void;
 }
 
 const DogsContext = createContext<DogsContextType | undefined>(undefined);
 
 export function DogsProvider({ children }: { children: ReactNode }) {
   const [dogs, setDogs] = useState<Dog[]>(sampleDogs);
-  const [currentRound, setCurrentRound] = useState<WalkRound>(1);
 
   const getDog = (id: string) => dogs.find(dog => dog.id === id);
 
   const startActivity = (id: string, type: ActivityType) => {
     setDogs(prev => prev.map(dog => {
       if (dog.id === id) {
-        const statusKey = type === 'walk' ? 'walkStatuses' : 'indoorStatuses';
         const recordKey = type === 'walk' ? 'walkRecords' : 'indoorRecords';
-        const currentStatus = dog[statusKey][currentRound];
+        const currentIdKey = type === 'walk' ? 'currentWalkId' : 'currentIndoorId';
         
-        // If finished, cycle back to active (start new activity)
-        if (currentStatus === 'finished' || currentStatus === 'idle') {
-          return {
-            ...dog,
-            [statusKey]: {
-              ...dog[statusKey],
-              [currentRound]: 'active' as ActivityStatus,
-            },
-            [recordKey]: {
-              ...dog[recordKey],
-              [currentRound]: {
-                startTime: new Date(),
-                endTime: null,
-              },
-            },
-          };
-        }
+        // Check if already active
+        if (dog[currentIdKey]) return dog;
+
+        const newRecordId = `${type}-${dog.id}-${Date.now()}`;
+        const newRecord: ActivityRecord = {
+          id: newRecordId,
+          startTime: new Date(),
+          endTime: null,
+        };
+
+        return {
+          ...dog,
+          [recordKey]: [...dog[recordKey], newRecord],
+          [currentIdKey]: newRecordId,
+        };
       }
       return dog;
     }));
@@ -51,22 +47,54 @@ export function DogsProvider({ children }: { children: ReactNode }) {
   const endActivity = (id: string, type: ActivityType) => {
     setDogs(prev => prev.map(dog => {
       if (dog.id === id) {
-        const statusKey = type === 'walk' ? 'walkStatuses' : 'indoorStatuses';
         const recordKey = type === 'walk' ? 'walkRecords' : 'indoorRecords';
+        const currentIdKey = type === 'walk' ? 'currentWalkId' : 'currentIndoorId';
+        const currentRecordId = dog[currentIdKey];
+
+        if (!currentRecordId) return dog;
+
+        return {
+          ...dog,
+          [recordKey]: dog[recordKey].map(record =>
+            record.id === currentRecordId
+              ? { ...record, endTime: new Date() }
+              : record
+          ),
+          [currentIdKey]: null,
+        };
+      }
+      return dog;
+    }));
+  };
+
+  const updateRecord = (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null) => {
+    setDogs(prev => prev.map(dog => {
+      if (dog.id === dogId) {
+        const recordKey = type === 'walk' ? 'walkRecords' : 'indoorRecords';
+        return {
+          ...dog,
+          [recordKey]: dog[recordKey].map(record =>
+            record.id === recordId
+              ? { ...record, startTime, endTime }
+              : record
+          ),
+        };
+      }
+      return dog;
+    }));
+  };
+
+  const deleteRecord = (dogId: string, type: ActivityType, recordId: string) => {
+    setDogs(prev => prev.map(dog => {
+      if (dog.id === dogId) {
+        const recordKey = type === 'walk' ? 'walkRecords' : 'indoorRecords';
+        const currentIdKey = type === 'walk' ? 'currentWalkId' : 'currentIndoorId';
         
         return {
           ...dog,
-          [statusKey]: {
-            ...dog[statusKey],
-            [currentRound]: 'finished' as ActivityStatus,
-          },
-          [recordKey]: {
-            ...dog[recordKey],
-            [currentRound]: {
-              ...dog[recordKey][currentRound],
-              endTime: new Date(),
-            },
-          },
+          [recordKey]: dog[recordKey].filter(record => record.id !== recordId),
+          // If we're deleting the current active record, clear currentId
+          [currentIdKey]: dog[currentIdKey] === recordId ? null : dog[currentIdKey],
         };
       }
       return dog;
@@ -76,11 +104,11 @@ export function DogsProvider({ children }: { children: ReactNode }) {
   return (
     <DogsContext.Provider value={{ 
       dogs, 
-      currentRound, 
-      setCurrentRound, 
       getDog, 
       startActivity, 
       endActivity,
+      updateRecord,
+      deleteRecord,
     }}>
       {children}
     </DogsContext.Provider>

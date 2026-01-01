@@ -13,31 +13,34 @@ interface DogCardProps {
 }
 
 export function DogCard({ dog }: DogCardProps) {
-  const { startActivity, endActivity, currentRound } = useDogs();
+  const { startActivity, endActivity } = useDogs();
   const navigate = useNavigate();
 
-  const walkStatus = dog.walkStatuses[currentRound];
-  const indoorStatus = dog.indoorStatuses[currentRound];
-  const walkRecord = dog.walkRecords[currentRound];
-  const indoorRecord = dog.indoorRecords[currentRound];
+  const isWalking = dog.currentWalkId !== null;
+  const isIndoor = dog.currentIndoorId !== null;
+  
+  const currentWalkRecord = isWalking 
+    ? dog.walkRecords.find(r => r.id === dog.currentWalkId) 
+    : null;
+  const currentIndoorRecord = isIndoor 
+    ? dog.indoorRecords.find(r => r.id === dog.currentIndoorId) 
+    : null;
 
   const hasWarnings = dog.walkingNotes.needsMuzzle || 
                       dog.walkingNotes.mustWalkAlone || 
                       dog.walkingNotes.reactiveToOtherDogs;
 
-  const walkDuration = walkRecord.startTime && walkStatus === 'active'
-    ? formatDistanceToNow(walkRecord.startTime, { addSuffix: false, locale: zhTW })
+  const walkDuration = currentWalkRecord
+    ? formatDistanceToNow(currentWalkRecord.startTime, { addSuffix: false, locale: zhTW })
     : null;
 
-  const indoorDuration = indoorRecord.startTime && indoorStatus === 'active'
-    ? formatDistanceToNow(indoorRecord.startTime, { addSuffix: false, locale: zhTW })
+  const indoorDuration = currentIndoorRecord
+    ? formatDistanceToNow(currentIndoorRecord.startTime, { addSuffix: false, locale: zhTW })
     : null;
 
   // Count completed activities
-  const walkCount = Object.values(dog.walkStatuses).filter(s => s === 'finished').length + 
-                    (walkStatus === 'active' ? 1 : 0);
-  const indoorCount = Object.values(dog.indoorStatuses).filter(s => s === 'finished').length + 
-                      (indoorStatus === 'active' ? 1 : 0);
+  const walkCount = dog.walkRecords.filter(r => r.endTime !== null).length;
+  const indoorCount = dog.indoorRecords.filter(r => r.endTime !== null).length;
 
   return (
     <Card className="p-4 touch-action-manipulation">
@@ -92,10 +95,10 @@ export function DogCard({ dog }: DogCardProps) {
 
           {/* Activity Status */}
           <div className="flex gap-2 mt-2">
-            {walkStatus === 'active' && walkDuration && (
+            {isWalking && walkDuration && (
               <StatusBadge status="active" label={`散步中 ${walkDuration}`} />
             )}
-            {indoorStatus === 'active' && indoorDuration && (
+            {isIndoor && indoorDuration && (
               <StatusBadge status="active" label={`放風中 ${indoorDuration}`} />
             )}
           </div>
@@ -105,7 +108,7 @@ export function DogCard({ dog }: DogCardProps) {
       {/* Actions - Two columns for walk and indoor */}
       <div className="grid grid-cols-2 gap-2 mt-4">
         {/* Walk Button */}
-        {walkStatus === 'active' ? (
+        {isWalking ? (
           <Button
             onClick={() => endActivity(dog.id, 'walk')}
             variant="secondary"
@@ -125,7 +128,7 @@ export function DogCard({ dog }: DogCardProps) {
         )}
 
         {/* Indoor Button */}
-        {indoorStatus === 'active' ? (
+        {isIndoor ? (
           <Button
             onClick={() => endActivity(dog.id, 'indoor')}
             variant="secondary"

@@ -26,20 +26,9 @@ export interface MedicationInfo {
 }
 
 export interface ActivityRecord {
-  startTime: Date | null;
+  id: string;
+  startTime: Date;
   endTime: Date | null;
-}
-
-export interface RoundActivity {
-  1: ActivityRecord;
-  2: ActivityRecord;
-  3: ActivityRecord;
-}
-
-export interface RoundStatus {
-  1: ActivityStatus;
-  2: ActivityStatus;
-  3: ActivityStatus;
 }
 
 export type RoomColor = '黃' | '綠' | '藍' | '紅';
@@ -54,10 +43,10 @@ export interface Dog {
   roomNumber: 1 | 2 | 3;
   indoorSpace: IndoorSpace;
   size: DogSize;
-  walkStatuses: RoundStatus;
-  walkRecords: RoundActivity;
-  indoorStatuses: RoundStatus;
-  indoorRecords: RoundActivity;
+  walkRecords: ActivityRecord[];
+  indoorRecords: ActivityRecord[];
+  currentWalkId: string | null;
+  currentIndoorId: string | null;
   walkingNotes: WalkingNotes;
   food: FoodInfo;
   medication: MedicationInfo;

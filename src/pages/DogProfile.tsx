@@ -3,6 +3,7 @@ import { useDogs } from '@/context/DogsContext';
 import { StatusBadge } from '@/components/StatusBadge';
 import { InfoSection } from '@/components/InfoSection';
 import { WarningTag } from '@/components/WarningTag';
+import { ActivityRecordItem } from '@/components/ActivityRecordItem';
 import { Button } from '@/components/ui/button';
 import { 
   ArrowLeft, 
@@ -24,7 +25,8 @@ import { zhTW } from 'date-fns/locale';
 export default function DogProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getDog, startActivity, endActivity, currentRound } = useDogs();
+  const { getDog, startActivity, endActivity } = useDogs();
+  const today = format(new Date(), 'yyyy年M月d日 EEEE', { locale: zhTW });
 
   const dog = getDog(id || '');
 
@@ -36,10 +38,8 @@ export default function DogProfile() {
     );
   }
 
-  const walkStatus = dog.walkStatuses[currentRound];
-  const indoorStatus = dog.indoorStatuses[currentRound];
-  const walkRecord = dog.walkRecords[currentRound];
-  const indoorRecord = dog.indoorRecords[currentRound];
+  const isWalking = dog.currentWalkId !== null;
+  const isIndoor = dog.currentIndoorId !== null;
 
   const sizeLabel = {
     S: '小型犬',
@@ -62,7 +62,7 @@ export default function DogProfile() {
           </Button>
           <h1 className="text-xl font-bold">狗狗資料</h1>
           <span className="ml-auto text-sm font-medium text-muted-foreground">
-            第 {currentRound} / 3 輪
+            {today}
           </span>
         </div>
       </header>
@@ -98,10 +98,10 @@ export default function DogProfile() {
 
         {/* Activity Status */}
         <div className="flex gap-2">
-          {walkStatus === 'active' && (
+          {isWalking && (
             <StatusBadge status="active" label="散步中" />
           )}
-          {indoorStatus === 'active' && (
+          {isIndoor && (
             <StatusBadge status="active" label="放風中" />
           )}
         </div>
@@ -109,7 +109,7 @@ export default function DogProfile() {
         {/* Activity Actions */}
         <div className="grid grid-cols-2 gap-2">
           {/* Walk Button */}
-          {walkStatus === 'active' ? (
+          {isWalking ? (
             <Button
               onClick={() => endActivity(dog.id, 'walk')}
               className="h-14 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
@@ -128,7 +128,7 @@ export default function DogProfile() {
           )}
 
           {/* Indoor Button */}
-          {indoorStatus === 'active' ? (
+          {isIndoor ? (
             <Button
               onClick={() => endActivity(dog.id, 'indoor')}
               className="h-14 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
@@ -148,49 +148,41 @@ export default function DogProfile() {
           )}
         </div>
 
-        {/* Walk Times */}
-        {(walkRecord.startTime || walkRecord.endTime) && (
+        {/* Walk Records */}
+        {dog.walkRecords.length > 0 && (
           <div className="bg-muted rounded-xl p-4 space-y-2">
-            <p className="text-sm font-medium">散步記錄</p>
-            {walkRecord.startTime && (
-              <p className="text-sm">
-                <span className="text-muted-foreground">開始時間：</span>
-                <span className="font-medium">
-                  {format(walkRecord.startTime, 'a h:mm', { locale: zhTW })}
-                </span>
-              </p>
-            )}
-            {walkRecord.endTime && (
-              <p className="text-sm">
-                <span className="text-muted-foreground">結束時間：</span>
-                <span className="font-medium">
-                  {format(walkRecord.endTime, 'a h:mm', { locale: zhTW })}
-                </span>
-              </p>
-            )}
+            <p className="text-sm font-medium mb-3">散步記錄</p>
+            <div className="space-y-2">
+              {dog.walkRecords.map((record, index) => (
+                <ActivityRecordItem
+                  key={record.id}
+                  dogId={dog.id}
+                  record={record}
+                  type="walk"
+                  index={index}
+                  isActive={record.id === dog.currentWalkId}
+                />
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Indoor Times */}
-        {(indoorRecord.startTime || indoorRecord.endTime) && (
+        {/* Indoor Records */}
+        {dog.indoorRecords.length > 0 && (
           <div className="bg-muted rounded-xl p-4 space-y-2">
-            <p className="text-sm font-medium">放風記錄</p>
-            {indoorRecord.startTime && (
-              <p className="text-sm">
-                <span className="text-muted-foreground">開始時間：</span>
-                <span className="font-medium">
-                  {format(indoorRecord.startTime, 'a h:mm', { locale: zhTW })}
-                </span>
-              </p>
-            )}
-            {indoorRecord.endTime && (
-              <p className="text-sm">
-                <span className="text-muted-foreground">結束時間：</span>
-                <span className="font-medium">
-                  {format(indoorRecord.endTime, 'a h:mm', { locale: zhTW })}
-                </span>
-              </p>
-            )}
+            <p className="text-sm font-medium mb-3">放風記錄</p>
+            <div className="space-y-2">
+              {dog.indoorRecords.map((record, index) => (
+                <ActivityRecordItem
+                  key={record.id}
+                  dogId={dog.id}
+                  record={record}
+                  type="indoor"
+                  index={index}
+                  isActive={record.id === dog.currentIndoorId}
+                />
+              ))}
+            </div>
           </div>
         )}
 
