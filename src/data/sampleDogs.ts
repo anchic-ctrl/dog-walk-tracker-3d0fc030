@@ -1,9 +1,5 @@
 import { Dog } from '@/types/dog';
 
-const emptyRecord = { startTime: null, endTime: null };
-const emptyRoundActivity = { 1: emptyRecord, 2: emptyRecord, 3: emptyRecord };
-const emptyRoundStatus = { 1: 'idle' as const, 2: 'idle' as const, 3: 'idle' as const };
-
 export const sampleDogs: Dog[] = [
   {
     id: '1',
@@ -14,10 +10,10 @@ export const sampleDogs: Dog[] = [
     roomNumber: 1,
     indoorSpace: '1樓客廳',
     size: 'L',
-    walkStatuses: { ...emptyRoundStatus },
-    walkRecords: { ...emptyRoundActivity },
-    indoorStatuses: { ...emptyRoundStatus },
-    indoorRecords: { ...emptyRoundActivity },
+    walkRecords: [],
+    indoorRecords: [],
+    currentWalkId: null,
+    currentIndoorId: null,
     walkingNotes: {
       pullsOnLeash: true,
       reactiveToOtherDogs: false,
@@ -48,14 +44,12 @@ export const sampleDogs: Dog[] = [
     roomNumber: 2,
     indoorSpace: '2樓大房間',
     size: 'M',
-    walkStatuses: { 1: 'active', 2: 'idle', 3: 'idle' },
-    walkRecords: { 
-      1: { startTime: new Date(Date.now() - 1000 * 60 * 12), endTime: null },
-      2: emptyRecord,
-      3: emptyRecord
-    },
-    indoorStatuses: { ...emptyRoundStatus },
-    indoorRecords: { ...emptyRoundActivity },
+    walkRecords: [
+      { id: 'w-bella-1', startTime: new Date(Date.now() - 1000 * 60 * 12), endTime: null }
+    ],
+    indoorRecords: [],
+    currentWalkId: 'w-bella-1',
+    currentIndoorId: null,
     walkingNotes: {
       pullsOnLeash: false,
       reactiveToOtherDogs: true,
@@ -86,24 +80,22 @@ export const sampleDogs: Dog[] = [
     roomNumber: 1,
     indoorSpace: '2樓小房間',
     size: 'S',
-    walkStatuses: { 1: 'finished', 2: 'idle', 3: 'idle' },
-    walkRecords: { 
-      1: { 
+    walkRecords: [
+      { 
+        id: 'w-charlie-1',
         startTime: new Date(Date.now() - 1000 * 60 * 45), 
         endTime: new Date(Date.now() - 1000 * 60 * 25) 
-      },
-      2: emptyRecord,
-      3: emptyRecord
-    },
-    indoorStatuses: { 1: 'finished', 2: 'idle', 3: 'idle' },
-    indoorRecords: { 
-      1: { 
+      }
+    ],
+    indoorRecords: [
+      { 
+        id: 'i-charlie-1',
         startTime: new Date(Date.now() - 1000 * 60 * 60), 
         endTime: new Date(Date.now() - 1000 * 60 * 50) 
-      },
-      2: emptyRecord,
-      3: emptyRecord
-    },
+      }
+    ],
+    currentWalkId: null,
+    currentIndoorId: null,
     walkingNotes: {
       pullsOnLeash: false,
       reactiveToOtherDogs: false,
@@ -134,10 +126,10 @@ export const sampleDogs: Dog[] = [
     roomNumber: 3,
     indoorSpace: '1樓客廳',
     size: 'M',
-    walkStatuses: { ...emptyRoundStatus },
-    walkRecords: { ...emptyRoundActivity },
-    indoorStatuses: { ...emptyRoundStatus },
-    indoorRecords: { ...emptyRoundActivity },
+    walkRecords: [],
+    indoorRecords: [],
+    currentWalkId: null,
+    currentIndoorId: null,
     walkingNotes: {
       pullsOnLeash: true,
       reactiveToOtherDogs: true,
