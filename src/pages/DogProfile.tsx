@@ -15,7 +15,8 @@ import {
   AlertTriangle,
   Play,
   Square,
-  RotateCcw
+  Home,
+  Dog as DogIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -23,7 +24,7 @@ import { zhTW } from 'date-fns/locale';
 export default function DogProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getDog, startWalk, endWalk, resetWalk, currentRound } = useDogs();
+  const { getDog, startActivity, endActivity, currentRound } = useDogs();
 
   const dog = getDog(id || '');
 
@@ -35,8 +36,10 @@ export default function DogProfile() {
     );
   }
 
-  const currentStatus = dog.roundStatuses[currentRound];
-  const currentWalk = dog.roundWalks[currentRound];
+  const walkStatus = dog.walkStatuses[currentRound];
+  const indoorStatus = dog.indoorStatuses[currentRound];
+  const walkRecord = dog.walkRecords[currentRound];
+  const indoorRecord = dog.indoorRecords[currentRound];
 
   const sizeLabel = {
     S: '小型犬',
@@ -75,9 +78,12 @@ export default function DogProfile() {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <h2 className="text-2xl font-bold">{dog.name}</h2>
-              <StatusBadge status={currentStatus} />
             </div>
             <div className="space-y-1 text-sm text-muted-foreground">
+              <p className="flex items-center gap-2">
+                <DogIcon className="w-4 h-4" />
+                品種：{dog.breed}
+              </p>
               <p className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
                 {dog.roomColor}{dog.roomNumber} · {dog.indoorSpace}
@@ -90,54 +96,98 @@ export default function DogProfile() {
           </div>
         </div>
 
-        {/* Walk Actions */}
+        {/* Activity Status */}
         <div className="flex gap-2">
-          {currentStatus === 'idle' && (
-            <Button
-              onClick={() => startWalk(dog.id)}
-              className="flex-1 h-14 text-base font-semibold"
-            >
-              <Play className="w-5 h-5 mr-2" />
-              開始第 {currentRound} 輪散步
-            </Button>
+          {walkStatus === 'active' && (
+            <StatusBadge status="active" label="散步中" />
           )}
-          {currentStatus === 'walking' && (
+          {indoorStatus === 'active' && (
+            <StatusBadge status="active" label="放風中" />
+          )}
+        </div>
+
+        {/* Activity Actions */}
+        <div className="grid grid-cols-2 gap-2">
+          {/* Walk Button */}
+          {walkStatus === 'active' ? (
             <Button
-              onClick={() => endWalk(dog.id)}
-              className="flex-1 h-14 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
+              onClick={() => endActivity(dog.id, 'walk')}
+              className="h-14 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
             >
               <Square className="w-5 h-5 mr-2" />
-              結束第 {currentRound} 輪散步
+              結束散步
+            </Button>
+          ) : (
+            <Button
+              onClick={() => startActivity(dog.id, 'walk')}
+              className="h-14 text-base font-semibold"
+            >
+              <Play className="w-5 h-5 mr-2" />
+              開始散步
             </Button>
           )}
-          {currentStatus === 'finished' && (
+
+          {/* Indoor Button */}
+          {indoorStatus === 'active' ? (
             <Button
-              onClick={() => resetWalk(dog.id)}
-              variant="outline"
-              className="flex-1 h-14 text-base font-semibold"
+              onClick={() => endActivity(dog.id, 'indoor')}
+              className="h-14 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
             >
-              <RotateCcw className="w-5 h-5 mr-2" />
-              重置第 {currentRound} 輪
+              <Square className="w-5 h-5 mr-2" />
+              結束放風
+            </Button>
+          ) : (
+            <Button
+              onClick={() => startActivity(dog.id, 'indoor')}
+              variant="outline"
+              className="h-14 text-base font-semibold"
+            >
+              <Home className="w-5 h-5 mr-2" />
+              開始放風
             </Button>
           )}
         </div>
 
         {/* Walk Times */}
-        {(currentWalk.startTime || currentWalk.endTime) && (
+        {(walkRecord.startTime || walkRecord.endTime) && (
           <div className="bg-muted rounded-xl p-4 space-y-2">
-            {currentWalk.startTime && (
+            <p className="text-sm font-medium">散步記錄</p>
+            {walkRecord.startTime && (
               <p className="text-sm">
                 <span className="text-muted-foreground">開始時間：</span>
                 <span className="font-medium">
-                  {format(currentWalk.startTime, 'a h:mm', { locale: zhTW })}
+                  {format(walkRecord.startTime, 'a h:mm', { locale: zhTW })}
                 </span>
               </p>
             )}
-            {currentWalk.endTime && (
+            {walkRecord.endTime && (
               <p className="text-sm">
                 <span className="text-muted-foreground">結束時間：</span>
                 <span className="font-medium">
-                  {format(currentWalk.endTime, 'a h:mm', { locale: zhTW })}
+                  {format(walkRecord.endTime, 'a h:mm', { locale: zhTW })}
+                </span>
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Indoor Times */}
+        {(indoorRecord.startTime || indoorRecord.endTime) && (
+          <div className="bg-muted rounded-xl p-4 space-y-2">
+            <p className="text-sm font-medium">放風記錄</p>
+            {indoorRecord.startTime && (
+              <p className="text-sm">
+                <span className="text-muted-foreground">開始時間：</span>
+                <span className="font-medium">
+                  {format(indoorRecord.startTime, 'a h:mm', { locale: zhTW })}
+                </span>
+              </p>
+            )}
+            {indoorRecord.endTime && (
+              <p className="text-sm">
+                <span className="text-muted-foreground">結束時間：</span>
+                <span className="font-medium">
+                  {format(indoorRecord.endTime, 'a h:mm', { locale: zhTW })}
                 </span>
               </p>
             )}

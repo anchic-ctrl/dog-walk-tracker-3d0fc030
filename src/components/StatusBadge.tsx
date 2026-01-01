@@ -1,44 +1,35 @@
-import { WalkStatus } from '@/types/dog';
+import { ActivityStatus } from '@/types/dog';
 import { cn } from '@/lib/utils';
-import { Circle, Play, CheckCircle } from 'lucide-react';
 
 interface StatusBadgeProps {
-  status: WalkStatus;
-  className?: string;
+  status: ActivityStatus;
+  label?: string;
 }
 
-const statusConfig = {
-  idle: {
-    label: '尚未開始',
-    icon: Circle,
-    className: 'bg-status-idle-bg text-status-idle',
-  },
-  walking: {
-    label: '散步中',
-    icon: Play,
-    className: 'bg-status-walking-bg text-status-walking animate-pulse-soft',
-  },
-  finished: {
-    label: '本輪已完成',
-    icon: CheckCircle,
-    className: 'bg-status-finished-bg text-status-finished',
-  },
-};
+export function StatusBadge({ status, label }: StatusBadgeProps) {
+  const config = {
+    idle: {
+      defaultLabel: '尚未開始',
+      className: 'bg-muted text-muted-foreground',
+    },
+    active: {
+      defaultLabel: '進行中',
+      className: 'bg-status-walking text-foreground animate-pulse-soft',
+    },
+    finished: {
+      defaultLabel: '已完成',
+      className: 'bg-status-finished text-foreground',
+    },
+  };
 
-export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const config = statusConfig[status];
-  const Icon = config.icon;
+  const { defaultLabel, className } = config[status];
 
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold',
-        config.className,
-        className
-      )}
-    >
-      <Icon className="w-3 h-3" />
-      {config.label}
+    <span className={cn(
+      'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold',
+      className
+    )}>
+      {label || defaultLabel}
     </span>
   );
 }

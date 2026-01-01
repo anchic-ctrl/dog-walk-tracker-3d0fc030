@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Dog, WalkStatus, WalkRound } from '@/types/dog';
+import { Dog, ActivityStatus, ActivityType, WalkRound } from '@/types/dog';
 import { sampleDogs } from '@/data/sampleDogs';
 
 interface DogsContextType {
@@ -7,10 +7,8 @@ interface DogsContextType {
   currentRound: WalkRound;
   setCurrentRound: (round: WalkRound) => void;
   getDog: (id: string) => Dog | undefined;
-  startWalk: (id: string) => void;
-  endWalk: (id: string) => void;
-  updateWalkTime: (id: string, type: 'start' | 'end', time: Date) => void;
-  resetWalk: (id: string) => void;
+  startActivity: (id: string, type: ActivityType) => void;
+  endActivity: (id: string, type: ActivityType) => void;
 }
 
 const DogsContext = createContext<DogsContextType | undefined>(undefined);
@@ -21,82 +19,52 @@ export function DogsProvider({ children }: { children: ReactNode }) {
 
   const getDog = (id: string) => dogs.find(dog => dog.id === id);
 
-  const startWalk = (id: string) => {
+  const startActivity = (id: string, type: ActivityType) => {
     setDogs(prev => prev.map(dog => {
       if (dog.id === id) {
-        return {
-          ...dog,
-          roundStatuses: {
-            ...dog.roundStatuses,
-            [currentRound]: 'walking' as WalkStatus,
-          },
-          roundWalks: {
-            ...dog.roundWalks,
-            [currentRound]: {
-              startTime: new Date(),
-              endTime: null,
+        const statusKey = type === 'walk' ? 'walkStatuses' : 'indoorStatuses';
+        const recordKey = type === 'walk' ? 'walkRecords' : 'indoorRecords';
+        const currentStatus = dog[statusKey][currentRound];
+        
+        // If finished, cycle back to active (start new activity)
+        if (currentStatus === 'finished' || currentStatus === 'idle') {
+          return {
+            ...dog,
+            [statusKey]: {
+              ...dog[statusKey],
+              [currentRound]: 'active' as ActivityStatus,
             },
-          },
-        };
+            [recordKey]: {
+              ...dog[recordKey],
+              [currentRound]: {
+                startTime: new Date(),
+                endTime: null,
+              },
+            },
+          };
+        }
       }
       return dog;
     }));
   };
 
-  const endWalk = (id: string) => {
+  const endActivity = (id: string, type: ActivityType) => {
     setDogs(prev => prev.map(dog => {
       if (dog.id === id) {
+        const statusKey = type === 'walk' ? 'walkStatuses' : 'indoorStatuses';
+        const recordKey = type === 'walk' ? 'walkRecords' : 'indoorRecords';
+        
         return {
           ...dog,
-          roundStatuses: {
-            ...dog.roundStatuses,
-            [currentRound]: 'finished' as WalkStatus,
+          [statusKey]: {
+            ...dog[statusKey],
+            [currentRound]: 'finished' as ActivityStatus,
           },
-          roundWalks: {
-            ...dog.roundWalks,
+          [recordKey]: {
+            ...dog[recordKey],
             [currentRound]: {
-              ...dog.roundWalks[currentRound],
+              ...dog[recordKey][currentRound],
               endTime: new Date(),
-            },
-          },
-        };
-      }
-      return dog;
-    }));
-  };
-
-  const updateWalkTime = (id: string, type: 'start' | 'end', time: Date) => {
-    setDogs(prev => prev.map(dog => {
-      if (dog.id === id) {
-        return {
-          ...dog,
-          roundWalks: {
-            ...dog.roundWalks,
-            [currentRound]: {
-              ...dog.roundWalks[currentRound],
-              [type === 'start' ? 'startTime' : 'endTime']: time,
-            },
-          },
-        };
-      }
-      return dog;
-    }));
-  };
-
-  const resetWalk = (id: string) => {
-    setDogs(prev => prev.map(dog => {
-      if (dog.id === id) {
-        return {
-          ...dog,
-          roundStatuses: {
-            ...dog.roundStatuses,
-            [currentRound]: 'idle' as WalkStatus,
-          },
-          roundWalks: {
-            ...dog.roundWalks,
-            [currentRound]: {
-              startTime: null,
-              endTime: null,
             },
           },
         };
@@ -111,10 +79,8 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       currentRound, 
       setCurrentRound, 
       getDog, 
-      startWalk, 
-      endWalk, 
-      updateWalkTime, 
-      resetWalk 
+      startActivity, 
+      endActivity,
     }}>
       {children}
     </DogsContext.Provider>

@@ -1,4 +1,5 @@
-export type WalkStatus = 'idle' | 'walking' | 'finished';
+export type ActivityStatus = 'idle' | 'active' | 'finished';
+export type ActivityType = 'walk' | 'indoor';
 export type DogSize = 'S' | 'M' | 'L';
 export type WalkRound = 1 | 2 | 3;
 
@@ -24,21 +25,21 @@ export interface MedicationInfo {
   notes: string;
 }
 
-export interface WalkRecord {
+export interface ActivityRecord {
   startTime: Date | null;
   endTime: Date | null;
 }
 
-export interface RoundWalks {
-  1: WalkRecord;
-  2: WalkRecord;
-  3: WalkRecord;
+export interface RoundActivity {
+  1: ActivityRecord;
+  2: ActivityRecord;
+  3: ActivityRecord;
 }
 
-export interface RoundStatuses {
-  1: WalkStatus;
-  2: WalkStatus;
-  3: WalkStatus;
+export interface RoundStatus {
+  1: ActivityStatus;
+  2: ActivityStatus;
+  3: ActivityStatus;
 }
 
 export type RoomColor = '黃' | '綠' | '藍' | '紅';
@@ -47,13 +48,16 @@ export type IndoorSpace = '1樓客廳' | '2樓大房間' | '2樓小房間';
 export interface Dog {
   id: string;
   name: string;
+  breed: string;
   photo: string;
   roomColor: RoomColor;
   roomNumber: 1 | 2 | 3;
   indoorSpace: IndoorSpace;
   size: DogSize;
-  roundStatuses: RoundStatuses;
-  roundWalks: RoundWalks;
+  walkStatuses: RoundStatus;
+  walkRecords: RoundActivity;
+  indoorStatuses: RoundStatus;
+  indoorRecords: RoundActivity;
   walkingNotes: WalkingNotes;
   food: FoodInfo;
   medication: MedicationInfo;

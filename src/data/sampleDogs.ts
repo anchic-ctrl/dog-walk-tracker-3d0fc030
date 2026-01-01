@@ -1,18 +1,23 @@
 import { Dog } from '@/types/dog';
 
-const emptyWalk = { startTime: null, endTime: null };
+const emptyRecord = { startTime: null, endTime: null };
+const emptyRoundActivity = { 1: emptyRecord, 2: emptyRecord, 3: emptyRecord };
+const emptyRoundStatus = { 1: 'idle' as const, 2: 'idle' as const, 3: 'idle' as const };
 
 export const sampleDogs: Dog[] = [
   {
     id: '1',
     name: 'Max',
+    breed: '黃金獵犬',
     photo: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&h=200&fit=crop&crop=face',
     roomColor: '黃',
     roomNumber: 1,
     indoorSpace: '1樓客廳',
     size: 'L',
-    roundStatuses: { 1: 'idle', 2: 'idle', 3: 'idle' },
-    roundWalks: { 1: emptyWalk, 2: emptyWalk, 3: emptyWalk },
+    walkStatuses: { ...emptyRoundStatus },
+    walkRecords: { ...emptyRoundActivity },
+    indoorStatuses: { ...emptyRoundStatus },
+    indoorRecords: { ...emptyRoundActivity },
     walkingNotes: {
       pullsOnLeash: true,
       reactiveToOtherDogs: false,
@@ -37,17 +42,20 @@ export const sampleDogs: Dog[] = [
   {
     id: '2',
     name: 'Bella',
+    breed: '米克斯',
     photo: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=200&h=200&fit=crop&crop=face',
     roomColor: '綠',
     roomNumber: 2,
     indoorSpace: '2樓大房間',
     size: 'M',
-    roundStatuses: { 1: 'walking', 2: 'idle', 3: 'idle' },
-    roundWalks: { 
+    walkStatuses: { 1: 'active', 2: 'idle', 3: 'idle' },
+    walkRecords: { 
       1: { startTime: new Date(Date.now() - 1000 * 60 * 12), endTime: null },
-      2: emptyWalk,
-      3: emptyWalk
+      2: emptyRecord,
+      3: emptyRecord
     },
+    indoorStatuses: { ...emptyRoundStatus },
+    indoorRecords: { ...emptyRoundActivity },
     walkingNotes: {
       pullsOnLeash: false,
       reactiveToOtherDogs: true,
@@ -72,19 +80,29 @@ export const sampleDogs: Dog[] = [
   {
     id: '3',
     name: 'Charlie',
+    breed: '柴犬',
     photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=200&h=200&fit=crop&crop=face',
     roomColor: '藍',
     roomNumber: 1,
     indoorSpace: '2樓小房間',
     size: 'S',
-    roundStatuses: { 1: 'finished', 2: 'idle', 3: 'idle' },
-    roundWalks: { 
+    walkStatuses: { 1: 'finished', 2: 'idle', 3: 'idle' },
+    walkRecords: { 
       1: { 
         startTime: new Date(Date.now() - 1000 * 60 * 45), 
         endTime: new Date(Date.now() - 1000 * 60 * 25) 
       },
-      2: emptyWalk,
-      3: emptyWalk
+      2: emptyRecord,
+      3: emptyRecord
+    },
+    indoorStatuses: { 1: 'finished', 2: 'idle', 3: 'idle' },
+    indoorRecords: { 
+      1: { 
+        startTime: new Date(Date.now() - 1000 * 60 * 60), 
+        endTime: new Date(Date.now() - 1000 * 60 * 50) 
+      },
+      2: emptyRecord,
+      3: emptyRecord
     },
     walkingNotes: {
       pullsOnLeash: false,
@@ -110,13 +128,16 @@ export const sampleDogs: Dog[] = [
   {
     id: '4',
     name: 'Luna',
+    breed: '哈士奇',
     photo: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=200&h=200&fit=crop&crop=face',
     roomColor: '紅',
     roomNumber: 3,
     indoorSpace: '1樓客廳',
     size: 'M',
-    roundStatuses: { 1: 'idle', 2: 'idle', 3: 'idle' },
-    roundWalks: { 1: emptyWalk, 2: emptyWalk, 3: emptyWalk },
+    walkStatuses: { ...emptyRoundStatus },
+    walkRecords: { ...emptyRoundActivity },
+    indoorStatuses: { ...emptyRoundStatus },
+    indoorRecords: { ...emptyRoundActivity },
     walkingNotes: {
       pullsOnLeash: true,
       reactiveToOtherDogs: true,
