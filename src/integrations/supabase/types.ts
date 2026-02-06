@@ -14,16 +14,153 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity_records: {
+        Row: {
+          activity_kind: Database["public"]["Enums"]["activity_kind"]
+          created_at: string
+          created_by: string | null
+          dog_id: string
+          end_time: string | null
+          id: string
+          start_time: string
+        }
+        Insert: {
+          activity_kind: Database["public"]["Enums"]["activity_kind"]
+          created_at?: string
+          created_by?: string | null
+          dog_id: string
+          end_time?: string | null
+          id?: string
+          start_time?: string
+        }
+        Update: {
+          activity_kind?: Database["public"]["Enums"]["activity_kind"]
+          created_at?: string
+          created_by?: string | null
+          dog_id?: string
+          end_time?: string | null
+          id?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_records_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dogs: {
+        Row: {
+          additional_notes: string | null
+          breed: string
+          created_at: string
+          food_info: Json
+          id: string
+          indoor_space: Database["public"]["Enums"]["indoor_space"]
+          medication_info: Json
+          name: string
+          photo_url: string | null
+          room_color: Database["public"]["Enums"]["room_color"]
+          room_number: number
+          size: Database["public"]["Enums"]["dog_size"]
+          updated_at: string
+          walking_notes: Json
+        }
+        Insert: {
+          additional_notes?: string | null
+          breed: string
+          created_at?: string
+          food_info?: Json
+          id?: string
+          indoor_space: Database["public"]["Enums"]["indoor_space"]
+          medication_info?: Json
+          name: string
+          photo_url?: string | null
+          room_color: Database["public"]["Enums"]["room_color"]
+          room_number: number
+          size: Database["public"]["Enums"]["dog_size"]
+          updated_at?: string
+          walking_notes?: Json
+        }
+        Update: {
+          additional_notes?: string | null
+          breed?: string
+          created_at?: string
+          food_info?: Json
+          id?: string
+          indoor_space?: Database["public"]["Enums"]["indoor_space"]
+          medication_info?: Json
+          name?: string
+          photo_url?: string | null
+          room_color?: Database["public"]["Enums"]["room_color"]
+          room_number?: number
+          size?: Database["public"]["Enums"]["dog_size"]
+          updated_at?: string
+          walking_notes?: Json
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_boss: { Args: never; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      activity_kind: "walk" | "indoor"
+      app_role: "boss" | "staff"
+      dog_size: "S" | "M" | "L"
+      indoor_space: "1樓客廳" | "2樓大房間" | "2樓小房間"
+      room_color: "黃" | "綠" | "藍" | "紅"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +287,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      activity_kind: ["walk", "indoor"],
+      app_role: ["boss", "staff"],
+      dog_size: ["S", "M", "L"],
+      indoor_space: ["1樓客廳", "2樓大房間", "2樓小房間"],
+      room_color: ["黃", "綠", "藍", "紅"],
+    },
   },
 } as const
