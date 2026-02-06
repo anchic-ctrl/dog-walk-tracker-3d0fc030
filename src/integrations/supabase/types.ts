@@ -103,6 +103,50 @@ export type Database = {
         }
         Relationships: []
       }
+      members: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          invited_by: string | null
+          is_super_admin: boolean
+          role: Database["public"]["Enums"]["member_role"]
+          status: Database["public"]["Enums"]["member_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string | null
+          is_super_admin?: boolean
+          role?: Database["public"]["Enums"]["member_role"]
+          status?: Database["public"]["Enums"]["member_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string | null
+          is_super_admin?: boolean
+          role?: Database["public"]["Enums"]["member_role"]
+          status?: Database["public"]["Enums"]["member_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -127,39 +171,25 @@ export type Database = {
         }
         Relationships: []
       }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      is_boss: { Args: never; Returns: boolean }
+      is_active_member: { Args: never; Returns: boolean }
+      is_admin: { Args: never; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
+      transfer_super_admin: {
+        Args: { target_member_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       activity_kind: "walk" | "indoor"
-      app_role: "boss" | "staff"
       dog_size: "S" | "M" | "L"
       indoor_space: "1樓客廳" | "2樓大房間" | "2樓小房間"
+      member_role: "admin" | "staff"
+      member_status: "invited" | "active" | "disabled"
       room_color: "黃" | "綠" | "藍" | "紅"
     }
     CompositeTypes: {
@@ -289,9 +319,10 @@ export const Constants = {
   public: {
     Enums: {
       activity_kind: ["walk", "indoor"],
-      app_role: ["boss", "staff"],
       dog_size: ["S", "M", "L"],
       indoor_space: ["1樓客廳", "2樓大房間", "2樓小房間"],
+      member_role: ["admin", "staff"],
+      member_status: ["invited", "active", "disabled"],
       room_color: ["黃", "綠", "藍", "紅"],
     },
   },

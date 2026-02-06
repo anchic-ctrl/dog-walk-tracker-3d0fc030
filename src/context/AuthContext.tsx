@@ -6,7 +6,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  isBoss: boolean;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  isActiveMember: boolean;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -18,7 +20,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isBoss, setIsBoss] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isActiveMember, setIsActiveMember] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -28,17 +32,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check if user is boss
+          // Check member status and role
           const { data } = await supabase
-            .from('user_roles')
-            .select('role')
+            .from('members')
+            .select('role, status, is_super_admin')
             .eq('user_id', session.user.id)
-            .eq('role', 'boss')
+            .eq('status', 'active')
             .maybeSingle();
           
-          setIsBoss(!!data);
+          if (data) {
+            setIsActiveMember(true);
+            setIsSuperAdmin(data.is_super_admin);
+            setIsAdmin(data.role === 'admin' || data.is_super_admin);
+          } else {
+            setIsActiveMember(false);
+            setIsAdmin(false);
+            setIsSuperAdmin(false);
+          }
         } else {
-          setIsBoss(false);
+          setIsActiveMember(false);
+          setIsAdmin(false);
+          setIsSuperAdmin(false);
         }
         
         setLoading(false);
@@ -52,13 +66,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session?.user) {
         supabase
-          .from('user_roles')
-          .select('role')
+          .from('members')
+          .select('role, status, is_super_admin')
           .eq('user_id', session.user.id)
-          .eq('role', 'boss')
+          .eq('status', 'active')
           .maybeSingle()
           .then(({ data }) => {
-            setIsBoss(!!data);
+            if (data) {
+              setIsActiveMember(true);
+              setIsSuperAdmin(data.is_super_admin);
+              setIsAdmin(data.role === 'admin' || data.is_super_admin);
+            } else {
+              setIsActiveMember(false);
+              setIsAdmin(false);
+              setIsSuperAdmin(false);
+            }
             setLoading(false);
           });
       } else {
@@ -95,7 +117,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    setIsBoss(false);
+    setIsAdmin(false);
+    setIsSuperAdmin(false);
+    setIsActiveMember(false);
   };
 
   return (
@@ -103,7 +127,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       session, 
       loading, 
-      isBoss,
+      isAdmin,
+      isSuperAdmin,
+      isActiveMember,
       signUp, 
       signIn, 
       signOut 
