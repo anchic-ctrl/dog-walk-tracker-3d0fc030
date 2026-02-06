@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dog, Mail, Lock, Loader2 } from 'lucide-react';
+import { Dog, Mail, Loader2, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Auth() {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   if (loading) {
     return (
@@ -31,20 +32,65 @@ export default function Auth() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const { error } = await signIn(email, password);
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+      },
+    });
     
     if (error) {
       toast({
         variant: 'destructive',
-        title: '登入失敗',
-        description: error.message === 'Invalid login credentials' 
-          ? '電子郵件或密碼錯誤' 
-          : error.message,
+        title: '發送失敗',
+        description: error.message,
       });
+    } else {
+      setShowConfirmation(true);
     }
     
     setIsSubmitting(false);
   };
+
+  if (showConfirmation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md space-y-6">
+          <div className="text-center space-y-2">
+            <div className="mx-auto w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center">
+              <Dog className="h-10 w-10 text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground">狗狗旅館</h1>
+            <p className="text-muted-foreground">放風管理系統</p>
+          </div>
+
+          <Card className="shadow-soft-lg border-0">
+            <CardHeader className="text-center pb-2">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle2 className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl font-bold">請查收您的信箱</CardTitle>
+              <CardDescription className="text-base mt-2">
+                我們已寄送登入連結到 <span className="font-semibold text-foreground">{email}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-muted-foreground">
+                請點擊郵件中的連結登入系統。
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowConfirmation(false)}
+                className="w-full"
+              >
+                重新輸入 Email
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -61,7 +107,7 @@ export default function Auth() {
         <Card className="shadow-soft-lg border-0">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-xl font-bold">登入</CardTitle>
-            <CardDescription>請輸入您的帳號密碼</CardDescription>
+            <CardDescription>輸入您的 Email 取得登入連結</CardDescription>
           </CardHeader>
           
           <CardContent>
@@ -83,24 +129,6 @@ export default function Auth() {
                   />
                 </div>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-base">
-                  密碼
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 h-12 text-base"
-                    required
-                  />
-                </div>
-              </div>
 
               <Button 
                 type="submit" 
@@ -110,10 +138,10 @@ export default function Auth() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    登入中...
+                    發送中...
                   </>
                 ) : (
-                  '登入'
+                  '發送登入連結'
                 )}
               </Button>
             </form>
