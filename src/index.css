@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400..900;1,400..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,115 +6,149 @@
 
 @layer base {
   :root {
-    --background: 40 20% 98%;
-    --foreground: 220 20% 15%;
+    /* Playful pastel palette - cream base with soft accents */
+    --background: 45 40% 96%;
+    --foreground: 220 25% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card-foreground: 220 25% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover-foreground: 220 25% 20%;
 
-    --primary: 220 70% 50%;
+    /* Mint green as primary - friendly & fresh */
+    --primary: 155 50% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 15% 92%;
-    --secondary-foreground: 220 20% 20%;
+    /* Soft lavender secondary */
+    --secondary: 280 30% 92%;
+    --secondary-foreground: 280 30% 25%;
 
-    --muted: 40 10% 90%;
-    --muted-foreground: 220 10% 45%;
+    /* Warm cream muted */
+    --muted: 40 30% 92%;
+    --muted-foreground: 220 15% 45%;
 
-    --accent: 40 30% 88%;
-    --accent-foreground: 220 20% 15%;
+    /* Peach accent */
+    --accent: 20 70% 90%;
+    --accent-foreground: 20 50% 25%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 15% 88%;
-    --input: 40 15% 88%;
-    --ring: 220 70% 50%;
+    --border: 40 25% 88%;
+    --input: 40 25% 88%;
+    --ring: 155 50% 45%;
 
-    --radius: 0.75rem;
+    /* Large radius for playful feel */
+    --radius: 1.25rem;
 
-    /* Status colors */
-    --status-idle: 215 20% 65%;
-    --status-idle-bg: 215 25% 95%;
-    --status-walking: 35 95% 50%;
-    --status-walking-bg: 40 100% 95%;
-    --status-finished: 145 60% 42%;
-    --status-finished-bg: 145 50% 94%;
+    /* Status colors - vibrant but soft */
+    --status-idle: 220 20% 65%;
+    --status-idle-bg: 220 30% 95%;
+    --status-walking: 35 90% 55%;
+    --status-walking-bg: 40 95% 92%;
+    --status-finished: 155 55% 45%;
+    --status-finished-bg: 155 50% 92%;
 
     /* Warning/Alert colors */
-    --warning: 35 95% 50%;
+    --warning: 35 90% 55%;
     --warning-foreground: 35 100% 20%;
-    --warning-bg: 40 100% 95%;
+    --warning-bg: 40 95% 92%;
 
-    --danger: 0 72% 51%;
+    --danger: 0 65% 55%;
     --danger-foreground: 0 0% 100%;
-    --danger-bg: 0 80% 96%;
+    --danger-bg: 0 75% 94%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar */
+    --sidebar-background: 45 40% 98%;
+    --sidebar-foreground: 220 25% 25%;
+    --sidebar-primary: 155 50% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 30% 94%;
+    --sidebar-accent-foreground: 220 25% 20%;
+    --sidebar-border: 40 25% 90%;
+    --sidebar-ring: 155 50% 45%;
+
+    /* Playful accent colors for tags/badges */
+    --pink: 340 70% 65%;
+    --pink-bg: 340 70% 94%;
+    --lavender: 280 50% 70%;
+    --lavender-bg: 280 50% 94%;
+    --mint: 155 50% 55%;
+    --mint-bg: 155 50% 92%;
+    --peach: 20 80% 70%;
+    --peach-bg: 20 80% 94%;
+    --yellow: 45 90% 60%;
+    --yellow-bg: 45 90% 92%;
+    --sky: 200 80% 60%;
+    --sky-bg: 200 80% 94%;
   }
 
   .dark {
-    --background: 220 20% 10%;
-    --foreground: 40 20% 95%;
+    --background: 220 25% 10%;
+    --foreground: 45 30% 95%;
 
-    --card: 220 20% 13%;
-    --card-foreground: 40 20% 95%;
+    --card: 220 25% 13%;
+    --card-foreground: 45 30% 95%;
 
-    --popover: 220 20% 13%;
-    --popover-foreground: 40 20% 95%;
+    --popover: 220 25% 13%;
+    --popover-foreground: 45 30% 95%;
 
-    --primary: 220 70% 60%;
-    --primary-foreground: 220 20% 10%;
+    --primary: 155 55% 50%;
+    --primary-foreground: 220 25% 10%;
 
-    --secondary: 220 15% 20%;
-    --secondary-foreground: 40 20% 90%;
+    --secondary: 280 20% 22%;
+    --secondary-foreground: 280 30% 90%;
 
-    --muted: 220 15% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 220 20% 18%;
+    --muted-foreground: 220 15% 60%;
 
-    --accent: 220 20% 22%;
-    --accent-foreground: 40 20% 95%;
+    --accent: 20 40% 22%;
+    --accent-foreground: 20 70% 90%;
 
-    --destructive: 0 62.8% 45%;
+    --destructive: 0 55% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 22%;
-    --input: 220 15% 22%;
-    --ring: 220 70% 60%;
+    --border: 220 20% 22%;
+    --input: 220 20% 22%;
+    --ring: 155 55% 50%;
 
-    --status-idle: 215 15% 50%;
-    --status-idle-bg: 215 20% 18%;
-    --status-walking: 35 90% 55%;
-    --status-walking-bg: 35 50% 18%;
-    --status-finished: 145 55% 45%;
-    --status-finished-bg: 145 30% 15%;
+    --status-idle: 220 15% 50%;
+    --status-idle-bg: 220 20% 18%;
+    --status-walking: 35 85% 55%;
+    --status-walking-bg: 35 45% 18%;
+    --status-finished: 155 50% 50%;
+    --status-finished-bg: 155 35% 15%;
 
-    --warning: 35 90% 55%;
-    --warning-foreground: 35 100% 90%;
-    --warning-bg: 35 50% 15%;
+    --warning: 35 85% 55%;
+    --warning-foreground: 35 90% 90%;
+    --warning-bg: 35 45% 15%;
 
-    --danger: 0 70% 55%;
+    --danger: 0 60% 50%;
     --danger-foreground: 0 0% 100%;
-    --danger-bg: 0 50% 15%;
+    --danger-bg: 0 45% 15%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 220 25% 10%;
+    --sidebar-foreground: 45 25% 95%;
+    --sidebar-primary: 155 55% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 220 20% 16%;
+    --sidebar-accent-foreground: 45 25% 95%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 155 55% 50%;
+
+    --pink: 340 65% 60%;
+    --pink-bg: 340 40% 18%;
+    --lavender: 280 45% 60%;
+    --lavender-bg: 280 30% 18%;
+    --mint: 155 45% 50%;
+    --mint-bg: 155 30% 15%;
+    --peach: 20 70% 60%;
+    --peach-bg: 20 40% 18%;
+    --yellow: 45 80% 55%;
+    --yellow-bg: 45 50% 15%;
+    --sky: 200 70% 55%;
+    --sky-bg: 200 40% 18%;
   }
 }
 
@@ -125,12 +159,34 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Nunito', sans-serif;
   }
 }
 
 @layer utilities {
   .touch-action-manipulation {
     touch-action: manipulation;
+  }
+}
+
+/* Custom scrollbar for playful feel */
+@layer utilities {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.4);
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.6);
   }
 }
