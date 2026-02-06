@@ -107,6 +107,7 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          expires_at: string | null
           id: string
           invited_by: string | null
           is_super_admin: boolean
@@ -118,6 +119,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email: string
+          expires_at?: string | null
           id?: string
           invited_by?: string | null
           is_super_admin?: boolean
@@ -129,6 +131,7 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string
+          expires_at?: string | null
           id?: string
           invited_by?: string | null
           is_super_admin?: boolean
@@ -182,6 +185,14 @@ export type Database = {
       transfer_super_admin: {
         Args: { target_member_id: string }
         Returns: undefined
+      }
+      validate_invitation: {
+        Args: { invite_email: string }
+        Returns: {
+          invited_by_name: string
+          member_id: string
+          status: string
+        }[]
       }
     }
     Enums: {
