@@ -60,7 +60,7 @@ export default function Auth() {
             <div className="mx-auto w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center">
               <Dog className="h-10 w-10 text-primary" />
             </div>
-            <h1 className="text-3xl font-bold text-foreground">狗狗旅館</h1>
+            <h1 className="text-3xl font-bold text-foreground">Amazing Dog</h1>
             <p className="text-muted-foreground">放風管理系統</p>
           </div>
 
@@ -100,7 +100,7 @@ export default function Auth() {
           <div className="mx-auto w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center">
             <Dog className="h-10 w-10 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">狗狗旅館</h1>
+          <h1 className="text-3xl font-bold text-foreground">Amazing Dog</h1>
           <p className="text-muted-foreground">放風管理系統</p>
         </div>
 
