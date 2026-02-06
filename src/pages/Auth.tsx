@@ -149,12 +149,15 @@ export default function Auth() {
         </Card>
 
         <div className="text-center">
-          <Link 
-            to="/accept-invite" 
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+          <Button 
+            variant="link" 
+            asChild
+            className="text-sm text-muted-foreground"
           >
-            收到邀請？點此啟用帳號
-          </Link>
+            <Link to="/accept-invite">
+              收到邀請？點此啟用帳號
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
