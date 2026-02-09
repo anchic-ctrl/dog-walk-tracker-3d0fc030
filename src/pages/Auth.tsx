@@ -176,10 +176,10 @@ export default function Auth() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    登入中...
+                    取得中...
                   </>
                 ) : (
-                  '登入'
+                  '取得登入連結'
                 )}
               </Button>
             </form>
