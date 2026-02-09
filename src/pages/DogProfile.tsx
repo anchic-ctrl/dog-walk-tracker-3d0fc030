@@ -213,16 +213,12 @@ export default function DogProfile() {
         <InfoSection title="飲食" icon={<UtensilsCrossed className="w-4 h-4" />}>
           <dl className="space-y-3 text-sm">
             <div>
-              <dt className="text-muted-foreground">飼料種類</dt>
-              <dd className="font-medium">{dog.food.foodType}</dd>
-            </div>
-            <div>
               <dt className="text-muted-foreground">餵食時間</dt>
               <dd className="font-medium">{dog.food.feedingTime}</dd>
             </div>
             {dog.food.specialInstructions && (
               <div>
-                <dt className="text-muted-foreground">特殊說明</dt>
+                <dt className="text-muted-foreground">餵食說明</dt>
                 <dd className="font-medium">{dog.food.specialInstructions}</dd>
               </div>
             )}
