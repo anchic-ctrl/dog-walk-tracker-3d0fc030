@@ -22,6 +22,8 @@ export type Database = {
           dog_id: string
           end_time: string | null
           id: string
+          notes: string | null
+          pee_status: Database["public"]["Enums"]["pee_status"] | null
           poop_status: Database["public"]["Enums"]["poop_status"] | null
           start_time: string
         }
@@ -32,6 +34,8 @@ export type Database = {
           dog_id: string
           end_time?: string | null
           id?: string
+          notes?: string | null
+          pee_status?: Database["public"]["Enums"]["pee_status"] | null
           poop_status?: Database["public"]["Enums"]["poop_status"] | null
           start_time?: string
         }
@@ -42,6 +46,8 @@ export type Database = {
           dog_id?: string
           end_time?: string | null
           id?: string
+          notes?: string | null
+          pee_status?: Database["public"]["Enums"]["pee_status"] | null
           poop_status?: Database["public"]["Enums"]["poop_status"] | null
           start_time?: string
         }
@@ -204,6 +210,7 @@ export type Database = {
       indoor_space: "1樓客廳" | "2樓大房間" | "2樓小房間"
       member_role: "admin" | "staff"
       member_status: "invited" | "active" | "disabled"
+      pee_status: "yes" | "no"
       poop_status: "normal" | "watery" | "unformed" | "none"
       room_color: "黃" | "綠" | "藍" | "紅"
     }
@@ -338,6 +345,7 @@ export const Constants = {
       indoor_space: ["1樓客廳", "2樓大房間", "2樓小房間"],
       member_role: ["admin", "staff"],
       member_status: ["invited", "active", "disabled"],
+      pee_status: ["yes", "no"],
       poop_status: ["normal", "watery", "unformed", "none"],
       room_color: ["黃", "綠", "藍", "紅"],
     },
