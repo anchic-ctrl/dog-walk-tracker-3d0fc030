@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogs } from '@/context/DogsContext';
 import { StatusBadge } from '@/components/StatusBadge';
 import { InfoSection } from '@/components/InfoSection';
@@ -26,9 +26,20 @@ import { zhTW } from 'date-fns/locale';
 export default function DogProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { getDog, startActivity, endActivity } = useDogs();
   const today = format(new Date(), 'yyyy年M月d日 EEEE', { locale: zhTW });
-  const [justEndedRecordId, setJustEndedRecordId] = useState<string | null>(null);
+  
+  // Get editRecord from URL query params (for auto-edit from home page)
+  const editRecordFromUrl = searchParams.get('editRecord');
+  const [justEndedRecordId, setJustEndedRecordId] = useState<string | null>(editRecordFromUrl);
+
+  // Clear URL param after reading it (to avoid re-triggering on navigation)
+  useEffect(() => {
+    if (editRecordFromUrl) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [editRecordFromUrl, setSearchParams]);
 
   const handleEndWalk = (dogId: string) => {
     // Get the current walk ID BEFORE ending the activity (to avoid closure/timing issues)
