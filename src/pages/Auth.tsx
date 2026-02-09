@@ -138,27 +138,15 @@ export default function Auth() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    發送中...
+                    登入中...
                   </>
                 ) : (
-                  '發送登入連結'
+                  '登入'
                 )}
               </Button>
             </form>
           </CardContent>
         </Card>
-
-        <div className="text-center">
-          <Button 
-            variant="link" 
-            asChild
-            className="text-sm text-muted-foreground"
-          >
-            <Link to="/accept-invite">
-              收到邀請？點此啟用帳號
-            </Link>
-          </Button>
-        </div>
       </div>
     </div>
   );
