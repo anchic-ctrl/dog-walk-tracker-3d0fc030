@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ActivityRecord, ActivityType, PoopStatus } from '@/types/dog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,10 +27,21 @@ const POOP_STATUS_LABELS: Record<PoopStatus, string> = {
 
 export function ActivityRecordItem({ dogId, record, type, index, isActive, autoEdit }: ActivityRecordItemProps) {
   const { updateRecord, deleteRecord } = useDogs();
-  const [isEditing, setIsEditing] = useState(autoEdit || false);
+  const [isEditing, setIsEditing] = useState(false);
   const [startTime, setStartTime] = useState(format(record.startTime, 'HH:mm'));
   const [endTime, setEndTime] = useState(record.endTime ? format(record.endTime, 'HH:mm') : '');
   const [poopStatus, setPoopStatus] = useState<PoopStatus | null>(record.poopStatus || (type === 'walk' ? 'none' : null));
+
+  // Auto-enter edit mode when autoEdit prop becomes true (e.g., after ending a walk)
+  useEffect(() => {
+    if (autoEdit) {
+      setIsEditing(true);
+      // Update endTime to the record's actual end time
+      if (record.endTime) {
+        setEndTime(format(record.endTime, 'HH:mm'));
+      }
+    }
+  }, [autoEdit, record.endTime]);
 
   const handleSave = () => {
     const today = new Date();
