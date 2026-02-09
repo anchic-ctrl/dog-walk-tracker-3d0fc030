@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Dog, ActivityType, ActivityRecord } from '@/types/dog';
+import { Dog, ActivityType, ActivityRecord, PoopStatus } from '@/types/dog';
 import { sampleDogs } from '@/data/sampleDogs';
 
 interface DogsContextType {
@@ -7,7 +7,7 @@ interface DogsContextType {
   getDog: (id: string) => Dog | undefined;
   startActivity: (id: string, type: ActivityType) => void;
   endActivity: (id: string, type: ActivityType) => void;
-  updateRecord: (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null) => void;
+  updateRecord: (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null, poopStatus?: PoopStatus | null) => void;
   deleteRecord: (dogId: string, type: ActivityType, recordId: string) => void;
 }
 
@@ -67,7 +67,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateRecord = (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null) => {
+  const updateRecord = (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null, poopStatus?: PoopStatus | null) => {
     setDogs(prev => prev.map(dog => {
       if (dog.id === dogId) {
         const recordKey = type === 'walk' ? 'walkRecords' : 'indoorRecords';
@@ -75,7 +75,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
           ...dog,
           [recordKey]: dog[recordKey].map(record =>
             record.id === recordId
-              ? { ...record, startTime, endTime }
+              ? { ...record, startTime, endTime, poopStatus }
               : record
           ),
         };

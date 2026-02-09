@@ -22,6 +22,7 @@ export type Database = {
           dog_id: string
           end_time: string | null
           id: string
+          poop_status: Database["public"]["Enums"]["poop_status"] | null
           start_time: string
         }
         Insert: {
@@ -31,6 +32,7 @@ export type Database = {
           dog_id: string
           end_time?: string | null
           id?: string
+          poop_status?: Database["public"]["Enums"]["poop_status"] | null
           start_time?: string
         }
         Update: {
@@ -40,6 +42,7 @@ export type Database = {
           dog_id?: string
           end_time?: string | null
           id?: string
+          poop_status?: Database["public"]["Enums"]["poop_status"] | null
           start_time?: string
         }
         Relationships: [
@@ -201,6 +204,7 @@ export type Database = {
       indoor_space: "1樓客廳" | "2樓大房間" | "2樓小房間"
       member_role: "admin" | "staff"
       member_status: "invited" | "active" | "disabled"
+      poop_status: "normal" | "watery" | "unformed"
       room_color: "黃" | "綠" | "藍" | "紅"
     }
     CompositeTypes: {
@@ -334,6 +338,7 @@ export const Constants = {
       indoor_space: ["1樓客廳", "2樓大房間", "2樓小房間"],
       member_role: ["admin", "staff"],
       member_status: ["invited", "active", "disabled"],
+      poop_status: ["normal", "watery", "unformed"],
       room_color: ["黃", "綠", "藍", "紅"],
     },
   },
