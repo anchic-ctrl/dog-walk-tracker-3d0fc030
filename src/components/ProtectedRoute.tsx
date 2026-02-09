@@ -8,14 +8,27 @@ interface ProtectedRouteProps {
 }
 
 // Development preview mode - allows viewing UI without auth in preview/dev
+const DEV_PREVIEW_KEY = 'amazingdog_dev_preview';
+
 const isDevPreview = () => {
-  const devParam = new URLSearchParams(window.location.search).get('dev');
-  const hasDevParam = devParam === 'true' || devParam === '1';
-
   // Only allow bypass in dev/preview builds (prevents exposing this in production)
-  const isDevBuild = import.meta.env.DEV;
+  if (!import.meta.env.DEV) return false;
 
-  return isDevBuild && hasDevParam;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('dev')?.toLowerCase();
+    const hasDevParam = raw === 'true' || raw === '1';
+
+    // Persist once enabled so it won't break if the platform rewrites/removes query params
+    if (hasDevParam) {
+      sessionStorage.setItem(DEV_PREVIEW_KEY, '1');
+      return true;
+    }
+
+    return sessionStorage.getItem(DEV_PREVIEW_KEY) === '1';
+  } catch {
+    return false;
+  }
 };
 
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
