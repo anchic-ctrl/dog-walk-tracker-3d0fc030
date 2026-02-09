@@ -90,12 +90,14 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
             className="w-24 h-8 text-sm"
             placeholder="進行中"
           />
-          <div className="flex gap-1 ml-auto">
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleSave}>
-              <Check className="w-4 h-4 text-status-finished" />
+          <div className="flex gap-2 ml-auto">
+            <Button size="sm" variant="default" className="h-8" onClick={handleSave}>
+              <Check className="w-4 h-4 mr-1" />
+              儲存紀錄
             </Button>
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleCancel}>
-              <X className="w-4 h-4 text-muted-foreground" />
+            <Button size="sm" variant="ghost" className="h-8" onClick={handleCancel}>
+              <X className="w-4 h-4 mr-1" />
+              取消
             </Button>
           </div>
         </div>
