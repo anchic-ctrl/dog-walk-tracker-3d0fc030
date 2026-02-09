@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { ActivityRecord, ActivityType, PoopStatus } from '@/types/dog';
+import { ActivityRecord, ActivityType, PoopStatus, PeeStatus } from '@/types/dog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useDogs } from '@/context/DogsContext';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -25,18 +26,23 @@ const POOP_STATUS_LABELS: Record<PoopStatus, string> = {
   unformed: '無法成型',
 };
 
+const PEE_STATUS_LABELS: Record<PeeStatus, string> = {
+  yes: '有小便',
+  no: '沒小便',
+};
+
 export function ActivityRecordItem({ dogId, record, type, index, isActive, autoEdit }: ActivityRecordItemProps) {
   const { updateRecord, deleteRecord } = useDogs();
   const [isEditing, setIsEditing] = useState(false);
   const [startTime, setStartTime] = useState(format(record.startTime, 'HH:mm'));
   const [endTime, setEndTime] = useState(record.endTime ? format(record.endTime, 'HH:mm') : '');
   const [poopStatus, setPoopStatus] = useState<PoopStatus | null>(record.poopStatus || (type === 'walk' ? 'none' : null));
+  const [peeStatus, setPeeStatus] = useState<PeeStatus>(record.peeStatus || 'yes');
+  const [notes, setNotes] = useState(record.notes || '');
 
-  // Auto-enter edit mode when autoEdit prop becomes true (e.g., after ending a walk)
   useEffect(() => {
     if (autoEdit) {
       setIsEditing(true);
-      // Update endTime to the record's actual end time
       if (record.endTime) {
         setEndTime(format(record.endTime, 'HH:mm'));
       }
@@ -54,7 +60,12 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
       newEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), endHour, endMin);
     }
 
-    updateRecord(dogId, type, record.id, newStart, newEnd, type === 'walk' ? poopStatus : undefined);
+    updateRecord(
+      dogId, type, record.id, newStart, newEnd,
+      type === 'walk' ? poopStatus : undefined,
+      type === 'walk' ? peeStatus : undefined,
+      notes.trim() || null
+    );
     setIsEditing(false);
   };
 
@@ -62,6 +73,8 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
     setStartTime(format(record.startTime, 'HH:mm'));
     setEndTime(record.endTime ? format(record.endTime, 'HH:mm') : '');
     setPoopStatus(record.poopStatus || null);
+    setPeeStatus(record.peeStatus || 'yes');
+    setNotes(record.notes || '');
     setIsEditing(false);
   };
 
@@ -102,7 +115,7 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
           </div>
         </div>
 
-        {/* Poop status selection - only for walk type */}
+        {/* Poop status - only for walk */}
         {type === 'walk' && (
           <div className="pt-2 border-t border-border/50">
             <p className="text-xs text-muted-foreground mb-2">大便狀況</p>
@@ -113,8 +126,8 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
             >
               {(Object.keys(POOP_STATUS_LABELS) as PoopStatus[]).map((status) => (
                 <div key={status} className="flex items-center space-x-2">
-                  <RadioGroupItem value={status} id={`${record.id}-${status}`} />
-                  <Label htmlFor={`${record.id}-${status}`} className="text-sm cursor-pointer">
+                  <RadioGroupItem value={status} id={`${record.id}-poop-${status}`} />
+                  <Label htmlFor={`${record.id}-poop-${status}`} className="text-sm cursor-pointer">
                     {POOP_STATUS_LABELS[status]}
                   </Label>
                 </div>
@@ -122,6 +135,38 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
             </RadioGroup>
           </div>
         )}
+
+        {/* Pee status - only for walk */}
+        {type === 'walk' && (
+          <div className="pt-2 border-t border-border/50">
+            <p className="text-xs text-muted-foreground mb-2">小便狀況</p>
+            <RadioGroup
+              value={peeStatus}
+              onValueChange={(value) => setPeeStatus(value as PeeStatus)}
+              className="flex gap-4"
+            >
+              {(Object.keys(PEE_STATUS_LABELS) as PeeStatus[]).map((status) => (
+                <div key={status} className="flex items-center space-x-2">
+                  <RadioGroupItem value={status} id={`${record.id}-pee-${status}`} />
+                  <Label htmlFor={`${record.id}-pee-${status}`} className="text-sm cursor-pointer">
+                    {PEE_STATUS_LABELS[status]}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+        )}
+
+        {/* Notes */}
+        <div className="pt-2 border-t border-border/50">
+          <p className="text-xs text-muted-foreground mb-2">其他備註</p>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="在這裡輸入備註..."
+            className="min-h-[60px] text-sm"
+          />
+        </div>
       </div>
     );
   }
@@ -140,10 +185,18 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
             }
           </span>
         </div>
-        {/* Show poop status for walk records */}
-        {type === 'walk' && record.poopStatus && (
+        {/* Show poop & pee status for walk records */}
+        {type === 'walk' && (record.poopStatus || record.peeStatus) && (
           <p className="text-xs text-muted-foreground mt-1">
-            💩 {POOP_STATUS_LABELS[record.poopStatus]}
+            {record.poopStatus && <>💩 {POOP_STATUS_LABELS[record.poopStatus]}</>}
+            {record.poopStatus && record.peeStatus && '  '}
+            {record.peeStatus && <>💧 {PEE_STATUS_LABELS[record.peeStatus]}</>}
+          </p>
+        )}
+        {/* Show notes if present */}
+        {record.notes && (
+          <p className="text-xs text-muted-foreground mt-1">
+            📝 {record.notes}
           </p>
         )}
       </div>

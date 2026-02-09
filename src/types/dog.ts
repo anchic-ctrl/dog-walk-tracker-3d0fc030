@@ -3,6 +3,7 @@ export type ActivityType = 'walk' | 'indoor';
 export type DogSize = 'S' | 'M' | 'L';
 export type WalkRound = 1 | 2 | 3;
 export type PoopStatus = 'none' | 'normal' | 'watery' | 'unformed';
+export type PeeStatus = 'yes' | 'no';
 
 export interface WalkingNotes {
   pullsOnLeash: boolean;
@@ -31,6 +32,8 @@ export interface ActivityRecord {
   startTime: Date;
   endTime: Date | null;
   poopStatus?: PoopStatus | null;
+  peeStatus?: PeeStatus | null;
+  notes?: string | null;
 }
 
 export type RoomColor = '黃' | '綠' | '藍' | '紅';
