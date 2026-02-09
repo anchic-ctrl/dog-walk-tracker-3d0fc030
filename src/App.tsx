@@ -8,6 +8,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import DogProfile from "./pages/DogProfile";
+import DogManagement from "./pages/DogManagement";
 import Auth from "./pages/Auth";
 import AcceptInvite from "./pages/AcceptInvite";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <DogProfile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/manage" 
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <DogManagement />
                   </ProtectedRoute>
                 } 
               />

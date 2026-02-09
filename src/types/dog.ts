@@ -38,17 +38,22 @@ export interface Dog {
   id: string;
   name: string;
   breed: string;
-  photo: string;
-  roomColor: RoomColor;
-  roomNumber: 1 | 2 | 3;
-  indoorSpace: IndoorSpace;
+  photo?: string; // Legacy field for local state
+  photo_url?: string; // Database field
+  roomColor?: RoomColor;
+  room_color?: RoomColor; // Database field
+  roomNumber?: 1 | 2 | 3;
+  room_number?: 1 | 2 | 3; // Database field
+  indoorSpace?: IndoorSpace;
+  indoor_space?: IndoorSpace; // Database field
   size: DogSize;
-  walkRecords: ActivityRecord[];
-  indoorRecords: ActivityRecord[];
-  currentWalkId: string | null;
-  currentIndoorId: string | null;
-  walkingNotes: WalkingNotes;
-  food: FoodInfo;
-  medication: MedicationInfo;
-  additionalNotes: string;
+  walkRecords?: ActivityRecord[];
+  indoorRecords?: ActivityRecord[];
+  currentWalkId?: string | null;
+  currentIndoorId?: string | null;
+  walkingNotes?: WalkingNotes;
+  food?: FoodInfo;
+  medication?: MedicationInfo;
+  additionalNotes?: string;
+  additional_notes?: string; // Database field
 }
