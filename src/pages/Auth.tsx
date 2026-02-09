@@ -107,7 +107,7 @@ export default function Auth() {
         <Card className="shadow-soft-lg border-0">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-xl font-bold">登入</CardTitle>
-            <CardDescription>輸入您的 Email 取得登入連結</CardDescription>
+            <CardDescription>輸入您的Email登入</CardDescription>
           </CardHeader>
           
           <CardContent>
