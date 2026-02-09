@@ -13,8 +13,23 @@ interface DogCardProps {
 }
 
 export function DogCard({ dog }: DogCardProps) {
-  const { startActivity, endActivity } = useDogs();
+  const { getDog, startActivity, endActivity } = useDogs();
   const navigate = useNavigate();
+
+  // End activity and navigate to dog profile with auto-edit
+  const handleEndActivity = (dogId: string, type: 'walk' | 'indoor') => {
+    const currentDog = getDog(dogId);
+    const currentRecordId = type === 'walk' 
+      ? currentDog?.currentWalkId 
+      : currentDog?.currentIndoorId;
+    
+    endActivity(dogId, type);
+    
+    // Navigate to dog profile with the record ID to auto-edit
+    if (currentRecordId) {
+      navigate(`/dog/${dogId}?editRecord=${currentRecordId}`);
+    }
+  };
 
   const isWalking = dog.currentWalkId !== null;
   const isIndoor = dog.currentIndoorId !== null;
@@ -110,7 +125,7 @@ export function DogCard({ dog }: DogCardProps) {
         {/* Walk Button */}
         {isWalking ? (
           <Button
-            onClick={() => endActivity(dog.id, 'walk')}
+            onClick={() => handleEndActivity(dog.id, 'walk')}
             variant="secondary"
             className="h-12 text-sm font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
           >
@@ -130,7 +145,7 @@ export function DogCard({ dog }: DogCardProps) {
         {/* Indoor Button */}
         {isIndoor ? (
           <Button
-            onClick={() => endActivity(dog.id, 'indoor')}
+            onClick={() => handleEndActivity(dog.id, 'indoor')}
             variant="secondary"
             className="h-12 text-sm font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
           >
