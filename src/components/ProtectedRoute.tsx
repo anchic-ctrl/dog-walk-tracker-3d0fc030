@@ -7,13 +7,15 @@ interface ProtectedRouteProps {
   requireAdmin?: boolean;
 }
 
-// Development preview mode - allows viewing UI without auth in Lovable preview
+// Development preview mode - allows viewing UI without auth in preview/dev
 const isDevPreview = () => {
-  // Check if we're in Lovable preview environment
-  const isLovablePreview = window.location.hostname.includes('lovableproject.com') || 
-                           window.location.hostname.includes('lovable.app');
-  const hasDevParam = new URLSearchParams(window.location.search).get('dev') === 'true';
-  return isLovablePreview && hasDevParam;
+  const devParam = new URLSearchParams(window.location.search).get('dev');
+  const hasDevParam = devParam === 'true' || devParam === '1';
+
+  // Only allow bypass in dev/preview builds (prevents exposing this in production)
+  const isDevBuild = import.meta.env.DEV;
+
+  return isDevBuild && hasDevParam;
 };
 
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
