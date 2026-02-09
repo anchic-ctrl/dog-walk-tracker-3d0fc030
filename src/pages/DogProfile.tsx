@@ -31,8 +31,18 @@ export default function DogProfile() {
   const [justEndedRecordId, setJustEndedRecordId] = useState<string | null>(null);
 
   const handleEndWalk = (dogId: string) => {
-    const endedId = endActivity(dogId, 'walk');
-    setJustEndedRecordId(endedId);
+    // Get the current walk ID BEFORE ending the activity (to avoid closure/timing issues)
+    const currentDog = getDog(dogId);
+    const currentRecordId = currentDog?.currentWalkId || null;
+    endActivity(dogId, 'walk');
+    setJustEndedRecordId(currentRecordId);
+  };
+
+  const handleEndIndoor = (dogId: string) => {
+    const currentDog = getDog(dogId);
+    const currentRecordId = currentDog?.currentIndoorId || null;
+    endActivity(dogId, 'indoor');
+    setJustEndedRecordId(currentRecordId);
   };
   const dog = getDog(id || '');
 
@@ -136,7 +146,7 @@ export default function DogProfile() {
           {/* Indoor Button */}
           {isIndoor ? (
             <Button
-              onClick={() => endActivity(dog.id, 'indoor')}
+              onClick={() => handleEndIndoor(dog.id)}
               className="h-14 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
             >
               <Square className="w-5 h-5 mr-2" />
@@ -187,6 +197,7 @@ export default function DogProfile() {
                   type="indoor"
                   index={index}
                   isActive={record.id === dog.currentIndoorId}
+                  autoEdit={record.id === justEndedRecordId}
                 />
               ))}
             </div>
