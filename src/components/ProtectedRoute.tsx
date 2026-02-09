@@ -7,9 +7,23 @@ interface ProtectedRouteProps {
   requireAdmin?: boolean;
 }
 
+// Development preview mode - allows viewing UI without auth in Lovable preview
+const isDevPreview = () => {
+  // Check if we're in Lovable preview environment
+  const isLovablePreview = window.location.hostname.includes('lovableproject.com') || 
+                           window.location.hostname.includes('lovable.app');
+  const hasDevParam = new URLSearchParams(window.location.search).get('dev') === 'true';
+  return isLovablePreview && hasDevParam;
+};
+
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
   const { user, loading, isAdmin, isActiveMember } = useAuth();
   const location = useLocation();
+
+  // Dev preview bypass - simulates logged-in admin for UI development
+  if (isDevPreview()) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
