@@ -2,7 +2,7 @@ export type ActivityStatus = 'idle' | 'active' | 'finished';
 export type ActivityType = 'walk' | 'indoor';
 export type DogSize = 'S' | 'M' | 'L';
 export type WalkRound = 1 | 2 | 3;
-export type PoopStatus = 'normal' | 'watery' | 'unformed';
+export type PoopStatus = 'none' | 'normal' | 'watery' | 'unformed';
 
 export interface WalkingNotes {
   pullsOnLeash: boolean;

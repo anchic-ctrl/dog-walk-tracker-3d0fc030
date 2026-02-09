@@ -15,20 +15,22 @@ interface ActivityRecordItemProps {
   type: ActivityType;
   index: number;
   isActive?: boolean;
+  autoEdit?: boolean;
 }
 
 const POOP_STATUS_LABELS: Record<PoopStatus, string> = {
+  none: '沒大便',
   normal: '正常',
   watery: '偏水',
   unformed: '無法成型',
 };
 
-export function ActivityRecordItem({ dogId, record, type, index, isActive }: ActivityRecordItemProps) {
+export function ActivityRecordItem({ dogId, record, type, index, isActive, autoEdit }: ActivityRecordItemProps) {
   const { updateRecord, deleteRecord } = useDogs();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(autoEdit || false);
   const [startTime, setStartTime] = useState(format(record.startTime, 'HH:mm'));
   const [endTime, setEndTime] = useState(record.endTime ? format(record.endTime, 'HH:mm') : '');
-  const [poopStatus, setPoopStatus] = useState<PoopStatus | null>(record.poopStatus || null);
+  const [poopStatus, setPoopStatus] = useState<PoopStatus | null>(record.poopStatus || (type === 'walk' ? 'none' : null));
 
   const handleSave = () => {
     const today = new Date();

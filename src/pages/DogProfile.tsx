@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDogs } from '@/context/DogsContext';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -27,7 +28,12 @@ export default function DogProfile() {
   const navigate = useNavigate();
   const { getDog, startActivity, endActivity } = useDogs();
   const today = format(new Date(), 'yyyy年M月d日 EEEE', { locale: zhTW });
+  const [justEndedRecordId, setJustEndedRecordId] = useState<string | null>(null);
 
+  const handleEndWalk = (dogId: string) => {
+    const endedId = endActivity(dogId, 'walk');
+    setJustEndedRecordId(endedId);
+  };
   const dog = getDog(id || '');
 
   if (!dog) {
@@ -111,7 +117,7 @@ export default function DogProfile() {
           {/* Walk Button */}
           {isWalking ? (
             <Button
-              onClick={() => endActivity(dog.id, 'walk')}
+              onClick={() => handleEndWalk(dog.id)}
               className="h-14 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
             >
               <Square className="w-5 h-5 mr-2" />
@@ -161,6 +167,7 @@ export default function DogProfile() {
                   type="walk"
                   index={index}
                   isActive={record.id === dog.currentWalkId}
+                  autoEdit={record.id === justEndedRecordId}
                 />
               ))}
             </div>

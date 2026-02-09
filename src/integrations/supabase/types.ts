@@ -204,7 +204,7 @@ export type Database = {
       indoor_space: "1樓客廳" | "2樓大房間" | "2樓小房間"
       member_role: "admin" | "staff"
       member_status: "invited" | "active" | "disabled"
-      poop_status: "normal" | "watery" | "unformed"
+      poop_status: "normal" | "watery" | "unformed" | "none"
       room_color: "黃" | "綠" | "藍" | "紅"
     }
     CompositeTypes: {
@@ -338,7 +338,7 @@ export const Constants = {
       indoor_space: ["1樓客廳", "2樓大房間", "2樓小房間"],
       member_role: ["admin", "staff"],
       member_status: ["invited", "active", "disabled"],
-      poop_status: ["normal", "watery", "unformed"],
+      poop_status: ["normal", "watery", "unformed", "none"],
       room_color: ["黃", "綠", "藍", "紅"],
     },
   },

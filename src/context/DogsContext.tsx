@@ -6,7 +6,7 @@ interface DogsContextType {
   dogs: Dog[];
   getDog: (id: string) => Dog | undefined;
   startActivity: (id: string, type: ActivityType) => void;
-  endActivity: (id: string, type: ActivityType) => void;
+  endActivity: (id: string, type: ActivityType) => string | null;
   updateRecord: (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null, poopStatus?: PoopStatus | null) => void;
   deleteRecord: (dogId: string, type: ActivityType, recordId: string) => void;
 }
@@ -44,7 +44,8 @@ export function DogsProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const endActivity = (id: string, type: ActivityType) => {
+  const endActivity = (id: string, type: ActivityType): string | null => {
+    let endedRecordId: string | null = null;
     setDogs(prev => prev.map(dog => {
       if (dog.id === id) {
         const recordKey = type === 'walk' ? 'walkRecords' : 'indoorRecords';
@@ -52,6 +53,8 @@ export function DogsProvider({ children }: { children: ReactNode }) {
         const currentRecordId = dog[currentIdKey];
 
         if (!currentRecordId) return dog;
+
+        endedRecordId = currentRecordId;
 
         return {
           ...dog,
@@ -65,6 +68,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       }
       return dog;
     }));
+    return endedRecordId;
   };
 
   const updateRecord = (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null, poopStatus?: PoopStatus | null) => {
