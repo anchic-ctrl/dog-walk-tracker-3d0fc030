@@ -32,59 +32,57 @@ export default function Auth() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // First check if email is in the active members list
-    const { data: member, error: memberError } = await supabase
-      .from('members')
-      .select('id, status, role, is_super_admin')
-      .ilike('email', email.trim())
-      .maybeSingle();
+    try {
+      // Use edge function to validate email (bypasses RLS for unauthenticated users)
+      const { data: validationResult, error: validationError } = await supabase.functions.invoke(
+        'validate-login-email',
+        { body: { email: email.trim() } }
+      );
 
-    if (memberError) {
+      if (validationError) {
+        toast({
+          variant: 'destructive',
+          title: '系統錯誤',
+          description: '無法驗證您的身分，請稍後再試',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!validationResult.valid) {
+        toast({
+          variant: 'destructive',
+          title: validationResult.status === 'disabled' ? '帳號已停用' : '無法登入',
+          description: validationResult.message,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Email is in the allowed list, send magic link
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+      
+      if (error) {
+        toast({
+          variant: 'destructive',
+          title: '發送失敗',
+          description: error.message,
+        });
+      } else {
+        setShowConfirmation(true);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
       toast({
         variant: 'destructive',
         title: '系統錯誤',
-        description: '無法驗證您的身分，請稍後再試',
+        description: '發生未預期的錯誤，請稍後再試',
       });
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!member) {
-      toast({
-        variant: 'destructive',
-        title: '無法登入',
-        description: '此 Email 尚未被邀請加入系統',
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (member.status !== 'active' && member.status !== 'invited') {
-      toast({
-        variant: 'destructive',
-        title: '帳號已停用',
-        description: '您的帳號已被停用，請聯繫管理員',
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Email is in the allowed list, send magic link
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-      },
-    });
-    
-    if (error) {
-      toast({
-        variant: 'destructive',
-        title: '發送失敗',
-        description: error.message,
-      });
-    } else {
-      setShowConfirmation(true);
     }
     
     setIsSubmitting(false);
