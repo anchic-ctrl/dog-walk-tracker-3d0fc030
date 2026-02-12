@@ -104,11 +104,11 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
             placeholder="進行中"
           />
           <div className="flex gap-2 ml-auto">
-            <Button size="sm" variant="default" className="h-8" onClick={handleSave}>
+            <Button size="sm" variant="default" className="h-8" onClick={(e) => { e.stopPropagation(); handleSave(); }}>
               <Check className="w-4 h-4 mr-1" />
               儲存紀錄
             </Button>
-            <Button size="sm" variant="ghost" className="h-8" onClick={handleCancel}>
+            <Button size="sm" variant="ghost" className="h-8" onClick={(e) => { e.stopPropagation(); handleCancel(); }}>
               <X className="w-4 h-4 mr-1" />
               取消
             </Button>
