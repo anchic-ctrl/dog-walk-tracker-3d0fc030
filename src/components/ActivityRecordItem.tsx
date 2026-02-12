@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ActivityRecord, ActivityType, PoopStatus, PeeStatus } from '@/types/dog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,8 +40,11 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
   const [peeStatus, setPeeStatus] = useState<PeeStatus>(record.peeStatus || 'yes');
   const [notes, setNotes] = useState(record.notes || '');
 
+  const autoEditConsumed = useRef(false);
+
   useEffect(() => {
-    if (autoEdit) {
+    if (autoEdit && !autoEditConsumed.current) {
+      autoEditConsumed.current = true;
       setIsEditing(true);
       if (record.endTime) {
         setEndTime(format(record.endTime, 'HH:mm'));
@@ -50,7 +53,6 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
   }, [autoEdit, record.endTime]);
 
   const handleSave = () => {
-    console.log('handleSave called', { startTime, endTime, poopStatus, peeStatus, notes, dogId, type, recordId: record.id });
     const today = new Date();
     const [startHour, startMin] = startTime.split(':').map(Number);
     const newStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), startHour, startMin);
@@ -61,7 +63,6 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
       newEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), endHour, endMin);
     }
 
-    console.log('calling updateRecord', { newStart, newEnd });
     updateRecord(
       dogId, type, record.id, newStart, newEnd,
       type === 'walk' ? poopStatus : undefined,
