@@ -50,6 +50,7 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
   }, [autoEdit, record.endTime]);
 
   const handleSave = () => {
+    console.log('handleSave called', { startTime, endTime, poopStatus, peeStatus, notes, dogId, type, recordId: record.id });
     const today = new Date();
     const [startHour, startMin] = startTime.split(':').map(Number);
     const newStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), startHour, startMin);
@@ -60,6 +61,7 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
       newEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), endHour, endMin);
     }
 
+    console.log('calling updateRecord', { newStart, newEnd });
     updateRecord(
       dogId, type, record.id, newStart, newEnd,
       type === 'walk' ? poopStatus : undefined,
