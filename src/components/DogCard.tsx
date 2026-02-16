@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useDogs } from '@/context/DogsContext';
 import { useNavigate } from 'react-router-dom';
-import { Play, Square, AlertTriangle, Home } from 'lucide-react';
+import { Play, StopCircle, AlertTriangle, Home } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
@@ -19,12 +19,12 @@ export function DogCard({ dog }: DogCardProps) {
   // End activity and navigate to dog profile with auto-edit
   const handleEndActivity = (dogId: string, type: 'walk' | 'indoor') => {
     const currentDog = getDog(dogId);
-    const currentRecordId = type === 'walk' 
-      ? currentDog?.currentWalkId 
+    const currentRecordId = type === 'walk'
+      ? currentDog?.currentWalkId
       : currentDog?.currentIndoorId;
-    
+
     endActivity(dogId, type);
-    
+
     // Navigate to dog profile with the record ID to auto-edit
     if (currentRecordId) {
       navigate(`/dog/${dogId}?editRecord=${currentRecordId}`);
@@ -33,17 +33,17 @@ export function DogCard({ dog }: DogCardProps) {
 
   const isWalking = dog.currentWalkId !== null;
   const isIndoor = dog.currentIndoorId !== null;
-  
-  const currentWalkRecord = isWalking 
-    ? dog.walkRecords.find(r => r.id === dog.currentWalkId) 
+
+  const currentWalkRecord = isWalking
+    ? dog.walkRecords.find(r => r.id === dog.currentWalkId)
     : null;
-  const currentIndoorRecord = isIndoor 
-    ? dog.indoorRecords.find(r => r.id === dog.currentIndoorId) 
+  const currentIndoorRecord = isIndoor
+    ? dog.indoorRecords.find(r => r.id === dog.currentIndoorId)
     : null;
 
-  const hasWarnings = dog.walkingNotes.needsMuzzle || 
-                      dog.walkingNotes.mustWalkAlone || 
-                      dog.walkingNotes.reactiveToOtherDogs;
+  const hasWarnings = dog.walkingNotes.needsMuzzle ||
+    dog.walkingNotes.mustWalkAlone ||
+    dog.walkingNotes.reactiveToOtherDogs;
 
   const walkDuration = currentWalkRecord
     ? formatDistanceToNow(currentWalkRecord.startTime, { addSuffix: false, locale: zhTW })
@@ -126,10 +126,10 @@ export function DogCard({ dog }: DogCardProps) {
         {isWalking ? (
           <Button
             onClick={() => handleEndActivity(dog.id, 'walk')}
-            variant="secondary"
-            className="h-12 text-sm font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
+            variant="destructive"
+            className="h-12 text-sm font-semibold"
           >
-            <Square className="w-4 h-4 mr-1.5" />
+            <StopCircle className="w-5 h-5 mr-1.5" />
             結束散步
           </Button>
         ) : (
@@ -146,10 +146,10 @@ export function DogCard({ dog }: DogCardProps) {
         {isIndoor ? (
           <Button
             onClick={() => handleEndActivity(dog.id, 'indoor')}
-            variant="secondary"
-            className="h-12 text-sm font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
+            variant="destructive"
+            className="h-12 text-sm font-semibold"
           >
-            <Square className="w-4 h-4 mr-1.5" />
+            <StopCircle className="w-5 h-5 mr-1.5" />
             結束放風
           </Button>
         ) : (

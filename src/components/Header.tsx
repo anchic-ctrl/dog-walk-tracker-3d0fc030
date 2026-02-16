@@ -1,4 +1,4 @@
-import { Dog, Settings } from 'lucide-react';
+import { Dog } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -23,12 +23,10 @@ export function Header({ title }: HeaderProps) {
         {isAdmin && (
           <Button
             variant="ghost"
-            size="icon"
             onClick={() => navigate('/manage')}
-            aria-label="狗狗管理"
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground font-medium"
           >
-            <Settings className="w-5 h-5" />
+            管理狗狗資料
           </Button>
         )}
       </div>
