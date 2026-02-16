@@ -17,8 +17,7 @@ export const sampleDogs: Dog[] = [
     walkingNotes: {
       pullsOnLeash: true,
       reactiveToOtherDogs: false,
-      needsMuzzle: false,
-      mustWalkAlone: false,
+      singleLeash: false,
       notes: '喜歡停下來聞東西，請耐心等待。',
     },
     food: {
@@ -53,8 +52,7 @@ export const sampleDogs: Dog[] = [
     walkingNotes: {
       pullsOnLeash: false,
       reactiveToOtherDogs: true,
-      needsMuzzle: false,
-      mustWalkAlone: true,
+      singleLeash: true,
       notes: '與其他狗保持距離，容易焦慮。',
     },
     food: {
@@ -99,8 +97,7 @@ export const sampleDogs: Dog[] = [
     walkingNotes: {
       pullsOnLeash: false,
       reactiveToOtherDogs: false,
-      needsMuzzle: false,
-      mustWalkAlone: false,
+      singleLeash: false,
       notes: '散步表現很好！可以與其他狗一起散步。',
     },
     food: {
@@ -133,8 +130,7 @@ export const sampleDogs: Dog[] = [
     walkingNotes: {
       pullsOnLeash: true,
       reactiveToOtherDogs: true,
-      needsMuzzle: true,
-      mustWalkAlone: true,
+      singleLeash: true,
       notes: '戶外必須戴口罩。獵食慾望強。',
     },
     food: {

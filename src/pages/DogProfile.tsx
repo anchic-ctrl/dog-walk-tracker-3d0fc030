@@ -220,7 +220,7 @@ export default function DogProfile() {
           title="散步注意事項"
           icon={<Footprints className="w-4 h-4" />}
           variant={
-            dog.walkingNotes.needsMuzzle || dog.walkingNotes.mustWalkAlone
+            dog.walkingNotes.singleLeash
               ? 'warning'
               : 'default'
           }
@@ -228,8 +228,7 @@ export default function DogProfile() {
           <div className="flex flex-wrap gap-2 mb-3">
             <WarningTag label="會拉扯牽繩" active={dog.walkingNotes.pullsOnLeash} />
             <WarningTag label="對其他狗有反應" active={dog.walkingNotes.reactiveToOtherDogs} />
-            <WarningTag label="需戴口罩" active={dog.walkingNotes.needsMuzzle} />
-            <WarningTag label="須單獨散步" active={dog.walkingNotes.mustWalkAlone} />
+            <WarningTag label="單牽" active={dog.walkingNotes.singleLeash} />
           </div>
           {dog.walkingNotes.notes && (
             <p className="text-sm text-foreground bg-background/50 rounded-lg p-3">

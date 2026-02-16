@@ -41,8 +41,7 @@ export function DogCard({ dog }: DogCardProps) {
     ? dog.indoorRecords.find(r => r.id === dog.currentIndoorId)
     : null;
 
-  const hasWarnings = dog.walkingNotes.needsMuzzle ||
-    dog.walkingNotes.mustWalkAlone ||
+  const hasWarnings = dog.walkingNotes.singleLeash ||
     dog.walkingNotes.reactiveToOtherDogs;
 
   const walkDuration = currentWalkRecord
@@ -100,8 +99,7 @@ export function DogCard({ dog }: DogCardProps) {
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span className="text-xs font-medium truncate">
                 {[
-                  dog.walkingNotes.needsMuzzle && '需戴口罩',
-                  dog.walkingNotes.mustWalkAlone && '須單獨散步',
+                  dog.walkingNotes.singleLeash && '單牽',
                   dog.walkingNotes.reactiveToOtherDogs && '對其他狗有反應',
                 ].filter(Boolean).join(' · ')}
               </span>

@@ -8,8 +8,7 @@ export type PeeStatus = 'yes' | 'no';
 export interface WalkingNotes {
   pullsOnLeash: boolean;
   reactiveToOtherDogs: boolean;
-  needsMuzzle: boolean;
-  mustWalkAlone: boolean;
+  singleLeash: boolean;
   notes: string;
 }
 

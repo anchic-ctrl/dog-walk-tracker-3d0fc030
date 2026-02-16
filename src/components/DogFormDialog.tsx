@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,15 +12,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
-import { Loader2, Upload, Camera } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Loader2, Upload, Camera, Check, X, ChevronDown } from 'lucide-react';
 
 type DbDog = Tables<'dogs'>;
 
 interface WalkingNotes {
     pullsOnLeash: boolean;
     reactiveToOtherDogs: boolean;
-    needsMuzzle: boolean;
-    mustWalkAlone: boolean;
+    singleLeash: boolean;
     notes: string;
 }
 
@@ -41,10 +41,12 @@ interface MedicationInfo {
 const defaultWalkingNotes: WalkingNotes = {
     pullsOnLeash: false,
     reactiveToOtherDogs: false,
-    needsMuzzle: false,
-    mustWalkAlone: false,
+    singleLeash: false,
     notes: '',
 };
+
+const BREED_OPTIONS = ['米克斯', '瑪爾濟斯', '貴賓', '標準貴賓', '法鬥', '惡霸'] as const;
+const CUSTOM_BREED_VALUE = '__custom__';
 
 const defaultFoodInfo: FoodInfo = {
     foodType: '',
@@ -77,6 +79,10 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
     // Form state
     const [name, setName] = useState('');
     const [breed, setBreed] = useState('');
+    const [breedSelection, setBreedSelection] = useState<string>('');
+    const [customBreed, setCustomBreed] = useState('');
+    const [tempCustomBreed, setTempCustomBreed] = useState('');
+    const [breedPopoverOpen, setBreedPopoverOpen] = useState(false);
     const [size, setSize] = useState<'S' | 'M' | 'L'>('M');
     const [roomColor, setRoomColor] = useState<'黃' | '綠' | '藍' | '紅'>('黃');
     const [roomNumber, setRoomNumber] = useState<number>(1);
@@ -94,6 +100,15 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
         if (dog) {
             setName(dog.name);
             setBreed(dog.breed);
+            if (BREED_OPTIONS.includes(dog.breed as typeof BREED_OPTIONS[number])) {
+                setBreedSelection(dog.breed);
+                setCustomBreed('');
+                setTempCustomBreed('');
+            } else {
+                setBreedSelection(CUSTOM_BREED_VALUE);
+                setCustomBreed(dog.breed);
+                setTempCustomBreed(dog.breed);
+            }
             setSize(dog.size);
             setRoomColor(dog.room_color);
             setRoomNumber(dog.room_number);
@@ -107,6 +122,10 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             // Reset for create mode
             setName('');
             setBreed('');
+            setBreedSelection('');
+            setCustomBreed('');
+            setTempCustomBreed('');
+            setBreedPopoverOpen(false);
             setSize('M');
             setRoomColor('黃');
             setRoomNumber(1);
@@ -118,6 +137,12 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             setMedicationInfo(defaultMedicationInfo);
         }
     }, [dog, open]);
+
+    useEffect(() => {
+        if (breedSelection === CUSTOM_BREED_VALUE) {
+            setBreed(customBreed);
+        }
+    }, [breedSelection, customBreed]);
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -205,15 +230,18 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl max-h-[90vh] p-0">
-                <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogContent className="max-w-2xl h-[90vh] p-0 flex flex-col overflow-hidden">
+                <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                     <DialogTitle className="text-xl font-bold">
                         {isEdit ? `編輯 ${dog?.name}` : '新增狗狗'}
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        填寫狗狗的基本資料、散步注意事項、飲食資訊及用藥資訊。
+                    </DialogDescription>
                 </DialogHeader>
 
-                <ScrollArea className="px-6 max-h-[calc(90vh-10rem)]">
-                    <Tabs defaultValue="basic" className="w-full">
+                <ScrollArea className="flex-1">
+                    <Tabs defaultValue="basic" className="w-full px-6">
                         <TabsList className="grid w-full grid-cols-4 mb-4">
                             <TabsTrigger value="basic">基本資料</TabsTrigger>
                             <TabsTrigger value="walking">散步注意</TabsTrigger>
@@ -222,7 +250,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                         </TabsList>
 
                         {/* === 基本資料 === */}
-                        <TabsContent value="basic" className="space-y-4 pb-4">
+                        <TabsContent value="basic" className="space-y-4 pb-6 px-1">
                             {/* Photo */}
                             <div className="flex flex-col items-center gap-3">
                                 <div className="w-28 h-28 rounded-2xl bg-muted overflow-hidden border-2 border-dashed border-border flex items-center justify-center">
@@ -257,7 +285,90 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                 </div>
                                 <div className="space-y-2">
                                     <Label>品種 *</Label>
-                                    <Input value={breed} onChange={e => setBreed(e.target.value)} placeholder="例：黃金獵犬" />
+                                    <Popover open={breedPopoverOpen} onOpenChange={setBreedPopoverOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={breedPopoverOpen}
+                                                className="w-full justify-between font-normal text-left"
+                                            >
+                                                <span className="truncate">
+                                                    {breedSelection === CUSTOM_BREED_VALUE
+                                                        ? (customBreed || '其他')
+                                                        : (breedSelection || '請選擇品種')}
+                                                </span>
+                                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-1" align="start">
+                                            <div className="flex flex-col">
+                                                {BREED_OPTIONS.map((option) => (
+                                                    <Button
+                                                        key={option}
+                                                        variant="ghost"
+                                                        className="justify-start font-normal h-9 px-2 gap-2"
+                                                        onClick={() => {
+                                                            setBreedSelection(option);
+                                                            setBreed(option);
+                                                            setBreedPopoverOpen(false);
+                                                            setTempCustomBreed('');
+                                                        }}
+                                                    >
+                                                        <div className="w-4 flex items-center justify-center">
+                                                            {breedSelection === option && <Check className="h-4 w-4" />}
+                                                        </div>
+                                                        {option}
+                                                    </Button>
+                                                ))}
+
+                                                <div className="flex items-center px-2 py-1.5 gap-2 border-t mt-1 bg-muted/30">
+                                                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">其他:</span>
+                                                    <div className="relative flex-1">
+                                                        <Input
+                                                            className="h-8 pr-16 text-sm bg-background border-muted-foreground/20 focus-visible:ring-1"
+                                                            value={tempCustomBreed}
+                                                            onChange={(e) => setTempCustomBreed(e.target.value)}
+                                                            placeholder="輸入其他品種"
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter' && tempCustomBreed.trim()) {
+                                                                    setBreedSelection(CUSTOM_BREED_VALUE);
+                                                                    setCustomBreed(tempCustomBreed.trim());
+                                                                    setBreed(tempCustomBreed.trim());
+                                                                    setBreedPopoverOpen(false);
+                                                                }
+                                                            }}
+                                                        />
+                                                        {tempCustomBreed.trim() && (
+                                                            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center pr-1">
+                                                                <Button
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    className="h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100/50"
+                                                                    onClick={() => {
+                                                                        setBreedSelection(CUSTOM_BREED_VALUE);
+                                                                        setCustomBreed(tempCustomBreed.trim());
+                                                                        setBreed(tempCustomBreed.trim());
+                                                                        setBreedPopoverOpen(false);
+                                                                    }}
+                                                                >
+                                                                    <Check className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                                <Button
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    className="h-6 w-6 text-destructive hover:text-destructive hover:bg-red-100/50"
+                                                                    onClick={() => setTempCustomBreed('')}
+                                                                >
+                                                                    <X className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                             </div>
 
@@ -320,7 +431,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                         </TabsContent>
 
                         {/* === 散步注意事項 === */}
-                        <TabsContent value="walking" className="space-y-4 pb-4">
+                        <TabsContent value="walking" className="space-y-4 pb-6 px-1">
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-base">會暴衝</Label>
@@ -339,18 +450,10 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                 </div>
                                 <Separator />
                                 <div className="flex items-center justify-between">
-                                    <Label className="text-base">需要戴口罩</Label>
+                                    <Label className="text-base">單牽</Label>
                                     <Switch
-                                        checked={walkingNotes.needsMuzzle}
-                                        onCheckedChange={v => setWalkingNotes(prev => ({ ...prev, needsMuzzle: v }))}
-                                    />
-                                </div>
-                                <Separator />
-                                <div className="flex items-center justify-between">
-                                    <Label className="text-base">必須單獨散步</Label>
-                                    <Switch
-                                        checked={walkingNotes.mustWalkAlone}
-                                        onCheckedChange={v => setWalkingNotes(prev => ({ ...prev, mustWalkAlone: v }))}
+                                        checked={walkingNotes.singleLeash}
+                                        onCheckedChange={v => setWalkingNotes(prev => ({ ...prev, singleLeash: v }))}
                                     />
                                 </div>
                                 <Separator />
@@ -367,7 +470,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                         </TabsContent>
 
                         {/* === 飲食資訊 === */}
-                        <TabsContent value="food" className="space-y-4 pb-4">
+                        <TabsContent value="food" className="space-y-4 pb-6 px-1">
                             <div className="space-y-2">
                                 <Label>飼料種類</Label>
                                 <Input
@@ -404,7 +507,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                         </TabsContent>
 
                         {/* === 用藥資訊 === */}
-                        <TabsContent value="medication" className="space-y-4 pb-4">
+                        <TabsContent value="medication" className="space-y-4 pb-6 px-1">
                             <div className="space-y-2">
                                 <Label>藥品名稱</Label>
                                 <Input
@@ -442,7 +545,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                     </Tabs>
                 </ScrollArea>
 
-                <DialogFooter className="px-6 pb-6 pt-2">
+                <DialogFooter className="bg-background border-t px-6 py-4 flex justify-center sm:justify-center gap-3 shrink-0">
                     <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
                         取消
                     </Button>
