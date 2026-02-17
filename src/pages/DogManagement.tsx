@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import DogFormDialog from '@/components/DogFormDialog';
+import { useDogs } from '@/context/DogsContext';
 
 type DbDog = Tables<'dogs'>;
 
@@ -31,6 +32,7 @@ const DogManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { refreshDogs } = useDogs();
 
   // Dialog state
   const [formOpen, setFormOpen] = useState(false);
@@ -83,6 +85,7 @@ const DogManagement = () => {
       toast({ title: '已刪除', description: `${deleteTarget.name} 已從系統移除` });
       setDeleteTarget(null);
       fetchDogs();
+      refreshDogs();
     } catch (error) {
       console.error('Delete failed:', error);
       toast({ title: '刪除失敗', description: '無法刪除此筆資料', variant: 'destructive' });
@@ -222,7 +225,10 @@ const DogManagement = () => {
         open={formOpen}
         onOpenChange={setFormOpen}
         dog={editingDog}
-        onSuccess={fetchDogs}
+        onSuccess={() => {
+          fetchDogs();
+          refreshDogs();
+        }}
       />
 
       {/* Delete Confirmation */}

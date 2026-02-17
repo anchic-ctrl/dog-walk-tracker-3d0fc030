@@ -124,7 +124,7 @@ export function DogCard({ dog }: DogCardProps) {
         {isWalking ? (
           <Button
             onClick={() => handleEndActivity(dog.id, 'walk')}
-            variant="destructive"
+            variant="warning"
             className="h-12 text-sm font-semibold"
           >
             <StopCircle className="w-5 h-5 mr-1.5" />
@@ -144,7 +144,7 @@ export function DogCard({ dog }: DogCardProps) {
         {isIndoor ? (
           <Button
             onClick={() => handleEndActivity(dog.id, 'indoor')}
-            variant="destructive"
+            variant="warning"
             className="h-12 text-sm font-semibold"
           >
             <StopCircle className="w-5 h-5 mr-1.5" />

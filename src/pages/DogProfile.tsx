@@ -6,13 +6,13 @@ import { InfoSection } from '@/components/InfoSection';
 import { WarningTag } from '@/components/WarningTag';
 import { ActivityRecordItem } from '@/components/ActivityRecordItem';
 import { Button } from '@/components/ui/button';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Ruler, 
-  Footprints, 
-  UtensilsCrossed, 
-  Pill, 
+import {
+  ArrowLeft,
+  MapPin,
+  Ruler,
+  Footprints,
+  UtensilsCrossed,
+  Pill,
   StickyNote,
   AlertTriangle,
   Play,
@@ -29,7 +29,7 @@ export default function DogProfile() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { getDog, startActivity, endActivity } = useDogs();
   const today = format(new Date(), 'yyyy年M月d日 EEEE', { locale: zhTW });
-  
+
   // Get editRecord from URL query params (for auto-edit from home page)
   const editRecordFromUrl = searchParams.get('editRecord');
   const [justEndedRecordId, setJustEndedRecordId] = useState<string | null>(editRecordFromUrl);
@@ -139,7 +139,8 @@ export default function DogProfile() {
           {isWalking ? (
             <Button
               onClick={() => handleEndWalk(dog.id)}
-              className="h-14 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
+              variant="warning"
+              className="h-14 text-base font-semibold"
             >
               <Square className="w-5 h-5 mr-2" />
               結束散步
@@ -158,7 +159,8 @@ export default function DogProfile() {
           {isIndoor ? (
             <Button
               onClick={() => handleEndIndoor(dog.id)}
-              className="h-14 text-base font-semibold bg-status-walking text-foreground hover:bg-status-walking/90"
+              variant="warning"
+              className="h-14 text-base font-semibold"
             >
               <Square className="w-5 h-5 mr-2" />
               結束放風
