@@ -134,6 +134,7 @@ export function DogCard({ dog }: DogCardProps) {
           <Button
             onClick={() => startActivity(dog.id, 'walk')}
             className="h-12 text-sm font-semibold"
+            disabled={isIndoor}
           >
             <Play className="w-4 h-4 mr-1.5" />
             開始散步
@@ -154,10 +155,11 @@ export function DogCard({ dog }: DogCardProps) {
           <Button
             onClick={() => startActivity(dog.id, 'indoor')}
             variant="outline"
-            className="h-12 text-sm font-semibold"
+            className="h-12 text-sm font-semibold hover:bg-warning/10 hover:border-warning hover:text-warning"
+            disabled={isWalking}
           >
             <Home className="w-4 h-4 mr-1.5" />
-            開始放風
+            開始室內放風
           </Button>
         )}
       </div>

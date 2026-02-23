@@ -33,6 +33,8 @@ export interface ActivityRecord {
   poopStatus?: PoopStatus | null;
   peeStatus?: PeeStatus | null;
   notes?: string | null;
+  created_by?: string | null;
+  staffName?: string | null;
 }
 
 export type RoomColor = '黃' | '綠' | '藍' | '紅';

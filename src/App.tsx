@@ -12,6 +12,7 @@ import DogManagement from "./pages/DogManagement";
 import Auth from "./pages/Auth";
 import AcceptInvite from "./pages/AcceptInvite";
 import NotFound from "./pages/NotFound";
+import StaffManagement from "./pages/StaffManagement";
 
 const queryClient = new QueryClient();
 
@@ -26,29 +27,37 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/accept-invite" element={<AcceptInvite />} />
-              <Route 
-                path="/" 
+              <Route
+                path="/"
                 element={
                   <ProtectedRoute>
                     <Index />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/dog/:id" 
+              <Route
+                path="/dog/:id"
                 element={
                   <ProtectedRoute>
                     <DogProfile />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/manage" 
+              <Route
+                path="/manage"
                 element={
                   <ProtectedRoute requireAdmin>
                     <DogManagement />
                   </ProtectedRoute>
-                } 
+                }
+              />
+              <Route
+                path="/staff"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <StaffManagement />
+                  </ProtectedRoute>
+                }
               />
               <Route path="*" element={<NotFound />} />
             </Routes>

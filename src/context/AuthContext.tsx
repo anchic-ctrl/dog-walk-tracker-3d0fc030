@@ -25,70 +25,89 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isActiveMember, setIsActiveMember] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Check member status and role
-          const { data } = await supabase
-            .from('members')
-            .select('role, status, is_super_admin')
-            .eq('user_id', session.user.id)
-            .eq('status', 'active')
-            .maybeSingle();
-          
-          if (data) {
-            setIsActiveMember(true);
-            setIsSuperAdmin(data.is_super_admin);
-            setIsAdmin(data.role === 'admin' || data.is_super_admin);
-          } else {
-            setIsActiveMember(false);
-            setIsAdmin(false);
-            setIsSuperAdmin(false);
-          }
-        } else {
-          setIsActiveMember(false);
-          setIsAdmin(false);
-          setIsSuperAdmin(false);
-        }
-        
-        setLoading(false);
-      }
-    );
+    let isMounted = true;
 
-    // THEN get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        supabase
+    const resetMemberState = () => {
+      setIsActiveMember(false);
+      setIsAdmin(false);
+      setIsSuperAdmin(false);
+    };
+
+    const loadMemberState = async (userId: string) => {
+      try {
+        const memberQuery = supabase
           .from('members')
           .select('role, status, is_super_admin')
-          .eq('user_id', session.user.id)
+          .eq('user_id', userId)
           .eq('status', 'active')
-          .maybeSingle()
-          .then(({ data }) => {
-            if (data) {
-              setIsActiveMember(true);
-              setIsSuperAdmin(data.is_super_admin);
-              setIsAdmin(data.role === 'admin' || data.is_super_admin);
-            } else {
-              setIsActiveMember(false);
-              setIsAdmin(false);
-              setIsSuperAdmin(false);
-            }
-            setLoading(false);
-          });
+          .maybeSingle();
+
+        const timeout = new Promise<never>((_, reject) => {
+          window.setTimeout(() => reject(new Error('member lookup timeout')), 8000);
+        });
+
+        const { data, error } = await Promise.race([memberQuery, timeout]);
+        if (error) throw error;
+        if (!isMounted) return;
+
+        if (data) {
+          setIsActiveMember(true);
+          setIsSuperAdmin(data.is_super_admin);
+          setIsAdmin(data.role === 'admin' || data.is_super_admin);
+          return;
+        }
+
+        resetMemberState();
+      } catch {
+        if (isMounted) {
+          resetMemberState();
+        }
+      }
+    };
+
+    const applySessionState = async (nextSession: Session | null) => {
+      if (!isMounted) return;
+
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+
+      if (nextSession?.user) {
+        await loadMemberState(nextSession.user.id);
       } else {
+        resetMemberState();
+      }
+
+      if (isMounted) {
         setLoading(false);
       }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      void applySessionState(nextSession);
     });
 
-    return () => subscription.unsubscribe();
+    void supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => applySessionState(session))
+      .catch(() => {
+        if (isMounted) {
+          resetMemberState();
+          setLoading(false);
+        }
+      });
+
+    // Safety valve: never leave UI stuck on spinner forever.
+    const safetyTimeout = window.setTimeout(() => {
+      if (isMounted) {
+        setLoading(false);
+      }
+    }, 10000);
+
+    return () => {
+      isMounted = false;
+      window.clearTimeout(safetyTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, displayName?: string) => {

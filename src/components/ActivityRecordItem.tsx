@@ -56,7 +56,7 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
     const today = new Date();
     const [startHour, startMin] = startTime.split(':').map(Number);
     const newStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), startHour, startMin);
-    
+
     let newEnd: Date | null = null;
     if (endTime) {
       const [endHour, endMin] = endTime.split(':').map(Number);
@@ -182,11 +182,16 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
           <span className="text-sm">
             {format(record.startTime, 'a h:mm', { locale: zhTW })}
             {' — '}
-            {record.endTime 
+            {record.endTime
               ? format(record.endTime, 'a h:mm', { locale: zhTW })
               : <span className="text-status-walking">進行中</span>
             }
           </span>
+          {record.staffName && (
+            <span className="text-xs text-muted-foreground border-l pl-2 ml-2">
+              {record.staffName}
+            </span>
+          )}
         </div>
         {/* Show poop & pee status for walk records */}
         {type === 'walk' && (record.poopStatus || record.peeStatus) && (

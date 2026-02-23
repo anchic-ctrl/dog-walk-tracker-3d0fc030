@@ -21,13 +21,22 @@ export function Header({ title }: HeaderProps) {
         </div>
         <h1 className="text-xl font-bold flex-1">{title}</h1>
         {isAdmin && (
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/manage')}
-            className="text-muted-foreground hover:text-foreground font-medium"
-          >
-            管理狗狗資料
-          </Button>
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/manage')}
+              className="text-muted-foreground hover:text-foreground font-medium"
+            >
+              管理狗狗
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/staff')}
+              className="text-muted-foreground hover:text-foreground font-medium"
+            >
+              管理員工
+            </Button>
+          </>
         )}
       </div>
     </header>
