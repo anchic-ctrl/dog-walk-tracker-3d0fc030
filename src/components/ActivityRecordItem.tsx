@@ -36,7 +36,7 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
   const [isEditing, setIsEditing] = useState(false);
   const [startTime, setStartTime] = useState(format(record.startTime, 'HH:mm'));
   const [endTime, setEndTime] = useState(record.endTime ? format(record.endTime, 'HH:mm') : '');
-  const [poopStatus, setPoopStatus] = useState<PoopStatus | null>(record.poopStatus || (type === 'walk' ? 'none' : null));
+  const [poopStatus, setPoopStatus] = useState<PoopStatus | null>(record.poopStatus || 'none');
   const [peeStatus, setPeeStatus] = useState<PeeStatus>(record.peeStatus || 'yes');
   const [notes, setNotes] = useState(record.notes || '');
 
@@ -65,8 +65,8 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
 
     updateRecord(
       dogId, type, record.id, newStart, newEnd,
-      type === 'walk' ? poopStatus : undefined,
-      type === 'walk' ? peeStatus : undefined,
+      poopStatus,
+      peeStatus,
       notes.trim() || null
     );
     setIsEditing(false);
@@ -118,47 +118,43 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
           </div>
         </div>
 
-        {/* Poop status - only for walk */}
-        {type === 'walk' && (
-          <div className="pt-2 border-t border-border/50">
-            <p className="text-xs text-muted-foreground mb-2">大便狀況</p>
-            <RadioGroup
-              value={poopStatus || ''}
-              onValueChange={(value) => setPoopStatus(value as PoopStatus)}
-              className="flex gap-4"
-            >
-              {(Object.keys(POOP_STATUS_LABELS) as PoopStatus[]).map((status) => (
-                <div key={status} className="flex items-center space-x-2">
-                  <RadioGroupItem value={status} id={`${record.id}-poop-${status}`} />
-                  <Label htmlFor={`${record.id}-poop-${status}`} className="text-sm cursor-pointer">
-                    {POOP_STATUS_LABELS[status]}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-        )}
+        {/* Poop status */}
+        <div className="pt-2 border-t border-border/50">
+          <p className="text-xs text-muted-foreground mb-2">大便狀況</p>
+          <RadioGroup
+            value={poopStatus || ''}
+            onValueChange={(value) => setPoopStatus(value as PoopStatus)}
+            className="flex gap-4 flex-wrap"
+          >
+            {(Object.keys(POOP_STATUS_LABELS) as PoopStatus[]).map((status) => (
+              <div key={status} className="flex items-center space-x-2">
+                <RadioGroupItem value={status} id={`${record.id}-poop-${status}`} />
+                <Label htmlFor={`${record.id}-poop-${status}`} className="text-sm cursor-pointer">
+                  {POOP_STATUS_LABELS[status]}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
 
-        {/* Pee status - only for walk */}
-        {type === 'walk' && (
-          <div className="pt-2 border-t border-border/50">
-            <p className="text-xs text-muted-foreground mb-2">小便狀況</p>
-            <RadioGroup
-              value={peeStatus}
-              onValueChange={(value) => setPeeStatus(value as PeeStatus)}
-              className="flex gap-4"
-            >
-              {(Object.keys(PEE_STATUS_LABELS) as PeeStatus[]).map((status) => (
-                <div key={status} className="flex items-center space-x-2">
-                  <RadioGroupItem value={status} id={`${record.id}-pee-${status}`} />
-                  <Label htmlFor={`${record.id}-pee-${status}`} className="text-sm cursor-pointer">
-                    {PEE_STATUS_LABELS[status]}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-        )}
+        {/* Pee status */}
+        <div className="pt-2 border-t border-border/50">
+          <p className="text-xs text-muted-foreground mb-2">小便狀況</p>
+          <RadioGroup
+            value={peeStatus}
+            onValueChange={(value) => setPeeStatus(value as PeeStatus)}
+            className="flex gap-4"
+          >
+            {(Object.keys(PEE_STATUS_LABELS) as PeeStatus[]).map((status) => (
+              <div key={status} className="flex items-center space-x-2">
+                <RadioGroupItem value={status} id={`${record.id}-pee-${status}`} />
+                <Label htmlFor={`${record.id}-pee-${status}`} className="text-sm cursor-pointer">
+                  {PEE_STATUS_LABELS[status]}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
 
         {/* Notes */}
         <div className="pt-2 border-t border-border/50">
@@ -193,8 +189,8 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
             </span>
           )}
         </div>
-        {/* Show poop & pee status for walk records */}
-        {type === 'walk' && (record.poopStatus || record.peeStatus) && (
+        {/* Show poop & pee status for all records */}
+        {(record.poopStatus || record.peeStatus) && (
           <p className="text-xs text-muted-foreground mt-1">
             {record.poopStatus && <>💩 {POOP_STATUS_LABELS[record.poopStatus]}</>}
             {record.poopStatus && record.peeStatus && '  '}

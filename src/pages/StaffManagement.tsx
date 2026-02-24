@@ -3,10 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, Shield, ShieldAlert, User, Mail } from 'lucide-react';
+import {
+    Loader2, ArrowLeft, Shield, ShieldAlert, Mail, UserPlus,
+    Copy, UserX, UserCheck, Send
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -14,7 +19,24 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Tables } from '@/integrations/supabase/types';
 
 type Member = Tables<'members'>;
@@ -24,11 +46,34 @@ const StaffManagement = () => {
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
     const navigate = useNavigate();
-    const { user: currentUser } = useAuth(); // To avoid modifying self if needed, though id might be different from user_id
+    const { user: currentUser, isSuperAdmin } = useAuth();
+
+    // Invite dialog state
+    const [inviteOpen, setInviteOpen] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState('');
+    const [inviteRole, setInviteRole] = useState<'admin' | 'staff'>('staff');
+    const [inviting, setInviting] = useState(false);
+
+    // Disable confirm dialog
+    const [disableTarget, setDisableTarget] = useState<Member | null>(null);
+
+    // Current user's member record (needed for invited_by)
+    const [myMemberId, setMyMemberId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchMembers();
+        fetchMyMemberId();
     }, []);
+
+    const fetchMyMemberId = async () => {
+        if (!currentUser) return;
+        const { data } = await supabase
+            .from('members')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+        if (data) setMyMemberId(data.id);
+    };
 
     const fetchMembers = async () => {
         try {
@@ -36,7 +81,9 @@ const StaffManagement = () => {
             const { data, error } = await supabase
                 .from('members')
                 .select('*')
-                .order('created_at', { ascending: false });
+                .order('is_super_admin', { ascending: false })
+                .order('role')
+                .order('created_at', { ascending: true });
 
             if (error) throw error;
             setMembers(data as Member[]);
@@ -49,6 +96,80 @@ const StaffManagement = () => {
             });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleInvite = async () => {
+        if (!inviteEmail.trim()) {
+            toast({ title: '請輸入 Email', variant: 'destructive' });
+            return;
+        }
+
+        // Check if email already exists
+        const existing = members.find(m => m.email.toLowerCase() === inviteEmail.trim().toLowerCase());
+        if (existing) {
+            toast({
+                title: '此 Email 已存在',
+                description: '該員工已在系統中，請直接管理其權限',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        setInviting(true);
+        try {
+            // 1. Insert the member record first
+            const { error: insertError } = await supabase
+                .from('members')
+                .insert({
+                    email: inviteEmail.trim().toLowerCase(),
+                    role: isSuperAdmin ? inviteRole : 'staff',
+                    status: 'invited',
+                    invited_by: myMemberId,
+                });
+
+            if (insertError) throw insertError;
+
+            // 2. Send magic link directly to the invitee's inbox
+            const { error: otpError } = await supabase.auth.signInWithOtp({
+                email: inviteEmail.trim().toLowerCase(),
+                options: {
+                    // After clicking the link, user lands on the home page
+                    emailRedirectTo: window.location.origin + '/',
+                    shouldCreateUser: true,
+                },
+            });
+
+            if (otpError) throw otpError;
+
+            toast({
+                title: '邀請信已發送 🎉',
+                description: `邀請信已寄送至 ${inviteEmail.trim()}，請對方查收信箱。`,
+            });
+
+            setInviteEmail('');
+            setInviteRole('staff');
+            setInviteOpen(false);
+            fetchMembers();
+        } catch (error: any) {
+            console.error('Invite failed:', error);
+            toast({
+                title: '邀請失敗',
+                description: error.message || '無法發送邀請信，請稍後再試',
+                variant: 'destructive',
+            });
+        } finally {
+            setInviting(false);
+        }
+    };
+
+    const handleCopyInviteLink = async (email: string) => {
+        const inviteLink = `${window.location.origin}/accept-invite?email=${encodeURIComponent(email)}`;
+        try {
+            await navigator.clipboard.writeText(inviteLink);
+            toast({ title: '邀請連結已複製', description: inviteLink });
+        } catch {
+            toast({ title: '邀請連結', description: inviteLink });
         }
     };
 
@@ -71,12 +192,55 @@ const StaffManagement = () => {
             });
         } catch (error) {
             console.error('Failed to update role:', error);
-            toast({
-                title: '更新失敗',
-                description: '無法更改權限',
-                variant: 'destructive',
-            });
+            toast({ title: '更新失敗', description: '無法更改權限', variant: 'destructive' });
         }
+    };
+
+    const handleToggleDisable = async (member: Member) => {
+        const newStatus = member.status === 'disabled' ? 'active' : 'disabled';
+        try {
+            const { error } = await supabase
+                .from('members')
+                .update({ status: newStatus })
+                .eq('id', member.id);
+
+            if (error) throw error;
+
+            setMembers(members.map(m =>
+                m.id === member.id ? { ...m, status: newStatus } : m
+            ));
+
+            toast({
+                title: newStatus === 'disabled' ? '已停用帳號' : '已重新啟用帳號',
+                description: member.email,
+            });
+            setDisableTarget(null);
+        } catch (error) {
+            console.error('Failed to toggle status:', error);
+            toast({ title: '操作失敗', variant: 'destructive' });
+        }
+    };
+
+    // Permission helpers
+    const canChangeRole = (target: Member): boolean => {
+        if (target.is_super_admin) return false; // super admin role is immutable
+        if (target.user_id === currentUser?.id) return false; // can't change own role
+        if (isSuperAdmin) return true; // super admin can change anyone
+        // regular admin can only change staff
+        return target.role === 'staff';
+    };
+
+    const canDisable = (target: Member): boolean => {
+        if (target.is_super_admin) return false;
+        if (target.user_id === currentUser?.id) return false;
+        if (isSuperAdmin) return true;
+        return target.role === 'staff';
+    };
+
+    const statusBadge = (status: Member['status']) => {
+        if (status === 'active') return <Badge className="bg-green-500 hover:bg-green-600 text-white">啟用中</Badge>;
+        if (status === 'invited') return <Badge variant="secondary">邀請中</Badge>;
+        return <Badge variant="destructive" className="opacity-70">已停用</Badge>;
     };
 
     if (loading) {
@@ -100,10 +264,12 @@ const StaffManagement = () => {
                             <Shield className="h-6 w-6 text-primary" />
                             員工權限管理
                         </h1>
-                        <p className="text-sm text-muted-foreground">
-                            管理員工權限與查看名單
-                        </p>
+                        <p className="text-sm text-muted-foreground">共 {members.length} 位員工</p>
                     </div>
+                    <Button onClick={() => setInviteOpen(true)} className="font-semibold">
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        邀請員工
+                    </Button>
                 </div>
             </div>
 
@@ -112,7 +278,7 @@ const StaffManagement = () => {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-[300px]">員工</TableHead>
+                                <TableHead className="w-[260px]">員工 Email</TableHead>
                                 <TableHead>狀態</TableHead>
                                 <TableHead>權限</TableHead>
                                 <TableHead className="text-right">操作</TableHead>
@@ -120,50 +286,80 @@ const StaffManagement = () => {
                         </TableHeader>
                         <TableBody>
                             {members.map((member) => (
-                                <TableRow key={member.id}>
+                                <TableRow key={member.id} className={member.status === 'disabled' ? 'opacity-50' : ''}>
                                     <TableCell>
-                                        <div className="flex flex-col">
+                                        <div className="flex flex-col gap-0.5">
                                             <div className="flex items-center gap-2 font-medium">
-                                                <Mail className="h-4 w-4 text-muted-foreground" />
-                                                {member.email}
+                                                <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                                                <span className="truncate">{member.email}</span>
+                                                {member.user_id === currentUser?.id && (
+                                                    <Badge variant="outline" className="text-xs shrink-0">你</Badge>
+                                                )}
                                             </div>
                                             {member.is_super_admin && (
-                                                <span className="text-xs text-primary mt-1 flex items-center gap-1">
+                                                <span className="text-xs text-primary flex items-center gap-1 ml-6">
                                                     <ShieldAlert className="h-3 w-3" /> 超級管理員
                                                 </span>
                                             )}
                                         </div>
                                     </TableCell>
+                                    <TableCell>{statusBadge(member.status)}</TableCell>
                                     <TableCell>
-                                        <Badge
-                                            variant={member.status === 'active' ? 'default' : 'secondary'}
-                                            className={member.status === 'active' ? 'bg-green-500 hover:bg-green-600' : ''}
-                                        >
-                                            {member.status === 'active' ? '啟用中' :
-                                                member.status === 'invited' ? '邀請中' : '已停用'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
+                                        {canChangeRole(member) ? (
+                                            <Select
+                                                value={member.role}
+                                                onValueChange={(value) => handleRoleChange(member.id, value as 'admin' | 'staff')}
+                                            >
+                                                <SelectTrigger className="w-[110px]">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="staff">一般員工</SelectItem>
+                                                    <SelectItem value="admin">管理員</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        ) : (
                                             <Badge variant={member.role === 'admin' ? 'default' : 'outline'}>
                                                 {member.role === 'admin' ? '管理員' : '員工'}
                                             </Badge>
-                                        </div>
+                                        )}
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <Select
-                                            disabled={member.is_super_admin} // Cannot change super admin role easily
-                                            value={member.role}
-                                            onValueChange={(value) => handleRoleChange(member.id, value as 'admin' | 'staff')}
-                                        >
-                                            <SelectTrigger className="w-[110px] ml-auto">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="staff">一般員工</SelectItem>
-                                                <SelectItem value="admin">管理員</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                    <TableCell>
+                                        <div className="flex items-center justify-end gap-2">
+                                            {/* Resend invite link */}
+                                            {member.status === 'invited' && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 text-xs"
+                                                    onClick={() => handleCopyInviteLink(member.email)}
+                                                >
+                                                    <Copy className="h-3.5 w-3.5 mr-1" />
+                                                    複製邀請連結
+                                                </Button>
+                                            )}
+                                            {/* Disable / Enable button */}
+                                            {canDisable(member) && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className={`h-8 text-xs ${member.status === 'disabled' ? 'text-green-600 hover:text-green-700' : 'text-destructive hover:text-destructive'}`}
+                                                    onClick={() => {
+                                                        if (member.status === 'disabled') {
+                                                            handleToggleDisable(member);
+                                                        } else {
+                                                            setDisableTarget(member);
+                                                        }
+                                                    }}
+                                                >
+                                                    {member.status === 'disabled' ? (
+                                                        <><UserCheck className="h-3.5 w-3.5 mr-1" />重新啟用</>
+                                                    ) : (
+                                                        <><UserX className="h-3.5 w-3.5 mr-1" />停用帳號</>
+                                                    )}
+                                                </Button>
+                                            )}
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -171,6 +367,80 @@ const StaffManagement = () => {
                     </Table>
                 </div>
             </div>
+
+            {/* Invite Dialog */}
+            <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Send className="h-5 w-5 text-primary" />
+                            邀請新員工
+                        </DialogTitle>
+                        <DialogDescription>
+                            填入員工 Email，系統將產生邀請連結供您分享。
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="invite-email">員工 Email</Label>
+                            <Input
+                                id="invite-email"
+                                type="email"
+                                placeholder="staff@example.com"
+                                value={inviteEmail}
+                                onChange={(e) => setInviteEmail(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>權限角色</Label>
+                            {isSuperAdmin ? (
+                                <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as 'admin' | 'staff')}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="staff">一般員工</SelectItem>
+                                        <SelectItem value="admin">管理員</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <div className="flex items-center gap-2 h-9 px-3 rounded-md border bg-muted text-sm text-muted-foreground">
+                                    一般員工（Admin 僅可邀請員工）
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setInviteOpen(false)}>取消</Button>
+                        <Button onClick={handleInvite} disabled={inviting}>
+                            {inviting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Copy className="h-4 w-4 mr-2" />}
+                            建立並複製邀請連結
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Disable Confirm Dialog */}
+            <AlertDialog open={!!disableTarget} onOpenChange={(open) => !open && setDisableTarget(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>確認停用帳號？</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            停用後，<strong>{disableTarget?.email}</strong> 將無法登入系統。您隨時可以重新啟用。
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>取消</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => disableTarget && handleToggleDisable(disableTarget)}
+                        >
+                            確認停用
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

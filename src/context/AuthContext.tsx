@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsSuperAdmin(false);
     };
 
-    const loadMemberState = async (userId: string) => {
+    const loadMemberState = async (userId: string, userEmail?: string) => {
       try {
         const memberQuery = supabase
           .from('members')
@@ -46,9 +46,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           window.setTimeout(() => reject(new Error('member lookup timeout')), 8000);
         });
 
-        const { data, error } = await Promise.race([memberQuery, timeout]);
+        let { data, error } = await Promise.race([memberQuery, timeout]);
         if (error) throw error;
         if (!isMounted) return;
+
+        // No active record found by user_id — check if there's an 'invited' member by email
+        if (!data && userEmail) {
+          const { data: invitedMember } = await supabase
+            .from('members')
+            .select('id, role, status, is_super_admin')
+            .eq('email', userEmail.toLowerCase())
+            .eq('status', 'invited')
+            .maybeSingle();
+
+          if (invitedMember) {
+            // Activate the invited member and link their user_id
+            await supabase
+              .from('members')
+              .update({ user_id: userId, status: 'active' })
+              .eq('id', invitedMember.id);
+
+            // Use the now-activated member data
+            data = { role: invitedMember.role, status: 'active', is_super_admin: invitedMember.is_super_admin };
+          }
+        }
 
         if (data) {
           setIsActiveMember(true);
@@ -72,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(nextSession?.user ?? null);
 
       if (nextSession?.user) {
-        await loadMemberState(nextSession.user.id);
+        await loadMemberState(nextSession.user.id, nextSession.user.email);
       } else {
         resetMemberState();
       }
@@ -142,16 +163,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      loading, 
+    <AuthContext.Provider value={{
+      user,
+      session,
+      loading,
       isAdmin,
       isSuperAdmin,
       isActiveMember,
-      signUp, 
-      signIn, 
-      signOut 
+      signUp,
+      signIn,
+      signOut
     }}>
       {children}
     </AuthContext.Provider>

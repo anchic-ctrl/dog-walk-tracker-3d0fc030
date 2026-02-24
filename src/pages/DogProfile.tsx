@@ -41,19 +41,14 @@ export default function DogProfile() {
     }
   }, [editRecordFromUrl, setSearchParams]);
 
-  const handleEndWalk = (dogId: string) => {
-    // Get the current walk ID BEFORE ending the activity (to avoid closure/timing issues)
-    const currentDog = getDog(dogId);
-    const currentRecordId = currentDog?.currentWalkId || null;
-    endActivity(dogId, 'walk');
-    setJustEndedRecordId(currentRecordId);
+  const handleEndWalk = async (dogId: string) => {
+    const endedId = await endActivity(dogId, 'walk');
+    setJustEndedRecordId(endedId);
   };
 
-  const handleEndIndoor = (dogId: string) => {
-    const currentDog = getDog(dogId);
-    const currentRecordId = currentDog?.currentIndoorId || null;
-    endActivity(dogId, 'indoor');
-    setJustEndedRecordId(currentRecordId);
+  const handleEndIndoor = async (dogId: string) => {
+    const endedId = await endActivity(dogId, 'indoor');
+    setJustEndedRecordId(endedId);
   };
   const dog = getDog(id || '');
 
