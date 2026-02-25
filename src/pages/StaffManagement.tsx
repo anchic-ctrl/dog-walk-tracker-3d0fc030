@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, supabaseInvite } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
@@ -105,46 +105,82 @@ const StaffManagement = () => {
             return;
         }
 
-        // Check if email already exists
-        const existing = members.find(m => m.email.toLowerCase() === inviteEmail.trim().toLowerCase());
+        const normalizedEmail = inviteEmail.trim().toLowerCase();
+
+        // Check if email already in the loaded list
+        const existing = members.find(m => m.email.toLowerCase() === normalizedEmail);
         if (existing) {
-            toast({
-                title: '此 Email 已存在',
-                description: '該員工已在系統中，請直接管理其權限',
-                variant: 'destructive',
-            });
+            // If already invited (status='invited'), offer to resend
+            if (existing.status === 'invited') {
+                toast({
+                    title: '此 Email 已受邀',
+                    description: '請點擊清單中的「重新發送邀請」按鈕重新寄信',
+                });
+            } else {
+                toast({
+                    title: '此 Email 已存在',
+                    description: '該員工已在系統中，請直接管理其權限',
+                    variant: 'destructive',
+                });
+            }
             return;
         }
 
         setInviting(true);
         try {
-            // 1. Insert the member record first
+            // 1. Insert the member record
             const { error: insertError } = await supabase
                 .from('members')
                 .insert({
-                    email: inviteEmail.trim().toLowerCase(),
+                    email: normalizedEmail,
                     role: isSuperAdmin ? inviteRole : 'staff',
                     status: 'invited',
                     invited_by: myMemberId,
                 });
 
-            if (insertError) throw insertError;
+            // If duplicate key: the email is already in DB but wasn't loaded in UI
+            if (insertError) {
+                if (insertError.code === '23505') {
+                    // Record exists — refresh the list and tell admin to use resend
+                    await fetchMembers();
+                    toast({
+                        title: '此 Email 已在系統中',
+                        description: '清單已更新，請使用「重新發送邀請」按鈕寄信給對方',
+                    });
+                    setInviteOpen(false);
+                } else {
+                    throw insertError;
+                }
+                return;
+            }
 
             // 2. Send magic link directly to the invitee's inbox
-            const { error: otpError } = await supabase.auth.signInWithOtp({
-                email: inviteEmail.trim().toLowerCase(),
+            const { error: otpError } = await supabaseInvite.auth.signInWithOtp({
+                email: normalizedEmail,
                 options: {
-                    // After clicking the link, user lands on the home page
                     emailRedirectTo: window.location.origin + '/',
                     shouldCreateUser: true,
                 },
             });
 
-            if (otpError) throw otpError;
+            // If OTP rate-limited: member record was already created, just inform admin
+            if (otpError) {
+                await fetchMembers();
+                const isRateLimit = otpError.message?.toLowerCase().includes('rate limit');
+                toast({
+                    title: isRateLimit ? '發送頻率過高' : '邀請信發送失敗',
+                    description: isRateLimit
+                        ? `${normalizedEmail} 已加入系統，但寄信頻率受限。請稍後在清單中點「重新發送邀請」。`
+                        : `員工已加入系統，但邀請信未寄出（${otpError.message}）。請使用清單中的「重新發送邀請」。`,
+                    variant: 'destructive',
+                });
+                setInviteOpen(false);
+                return;
+            }
 
             toast({
                 title: '邀請信已發送 🎉',
-                description: `邀請信已寄送至 ${inviteEmail.trim()}，請對方查收信箱。`,
+                description: `邀請信已寄送至 ${normalizedEmail}，請對方查收信箱。`,
             });
 
             setInviteEmail('');
@@ -163,13 +199,28 @@ const StaffManagement = () => {
         }
     };
 
-    const handleCopyInviteLink = async (email: string) => {
-        const inviteLink = `${window.location.origin}/accept-invite?email=${encodeURIComponent(email)}`;
+    // Resend: send a fresh magic link to an already-invited member
+    const handleResendInvite = async (email: string) => {
         try {
-            await navigator.clipboard.writeText(inviteLink);
-            toast({ title: '邀請連結已複製', description: inviteLink });
+            const { error } = await supabaseInvite.auth.signInWithOtp({
+                email,
+                options: {
+                    emailRedirectTo: window.location.origin + '/',
+                    shouldCreateUser: true,
+                },
+            });
+            if (error) {
+                const isRateLimit = error.message?.toLowerCase().includes('rate limit');
+                toast({
+                    title: isRateLimit ? '發送頻率過高，請稍後再試' : '發送失敗',
+                    description: error.message,
+                    variant: 'destructive',
+                });
+            } else {
+                toast({ title: '邀請信已重新發送', description: `已寄送至 ${email}` });
+            }
         } catch {
-            toast({ title: '邀請連結', description: inviteLink });
+            toast({ title: '發送失敗', variant: 'destructive' });
         }
     };
 
@@ -326,16 +377,16 @@ const StaffManagement = () => {
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center justify-end gap-2">
-                                            {/* Resend invite link */}
+                                            {/* Resend invite email */}
                                             {member.status === 'invited' && (
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     className="h-8 text-xs"
-                                                    onClick={() => handleCopyInviteLink(member.email)}
+                                                    onClick={() => handleResendInvite(member.email)}
                                                 >
-                                                    <Copy className="h-3.5 w-3.5 mr-1" />
-                                                    複製邀請連結
+                                                    <Send className="h-3.5 w-3.5 mr-1" />
+                                                    重新發送邀請
                                                 </Button>
                                             )}
                                             {/* Disable / Enable button */}
@@ -377,7 +428,7 @@ const StaffManagement = () => {
                             邀請新員工
                         </DialogTitle>
                         <DialogDescription>
-                            填入員工 Email，系統將產生邀請連結供您分享。
+                            填入員工 Email，系統將直接寄送邀請信到對方信箱。
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-2">
@@ -414,8 +465,8 @@ const StaffManagement = () => {
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setInviteOpen(false)}>取消</Button>
                         <Button onClick={handleInvite} disabled={inviting}>
-                            {inviting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Copy className="h-4 w-4 mr-2" />}
-                            建立並複製邀請連結
+                            {inviting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                            發送邀請信
                         </Button>
                     </DialogFooter>
                 </DialogContent>

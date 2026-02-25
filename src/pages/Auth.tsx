@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +15,27 @@ export default function Auth() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [email, setEmail] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
+
+  // Detect Supabase auth errors returned in the URL hash after magic link redirect
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const params = new URLSearchParams(hash.slice(1)); // remove leading #
+    const errorCode = params.get('error_code');
+    const errorDescription = params.get('error_description');
+    if (errorCode) {
+      // Clean the hash so refreshing doesn't re-trigger
+      window.history.replaceState(null, '', window.location.pathname);
+      const isExpired = errorCode === 'otp_expired';
+      toast({
+        variant: 'destructive',
+        title: isExpired ? '登入連結已失效' : '登入失敗',
+        description: isExpired
+          ? '此連結已過期或已被使用。請重新輸入 Email 取得新的登入連結。'
+          : decodeURIComponent(errorDescription?.replace(/\+/g, ' ') || '請稍後再試'),
+      });
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -66,7 +87,7 @@ export default function Auth() {
           emailRedirectTo: `${window.location.origin}/`,
         },
       });
-      
+
       if (error) {
         toast({
           variant: 'destructive',
@@ -84,7 +105,7 @@ export default function Auth() {
         description: '發生未預期的錯誤，請稍後再試',
       });
     }
-    
+
     setIsSubmitting(false);
   };
 
@@ -114,8 +135,8 @@ export default function Auth() {
               <p className="text-muted-foreground">
                 請點擊郵件中的連結登入系統。
               </p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowConfirmation(false)}
                 className="w-full"
               >
@@ -145,7 +166,7 @@ export default function Auth() {
             <CardTitle className="text-xl font-bold">登入</CardTitle>
             <CardDescription>輸入您的Email登入</CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
@@ -166,8 +187,8 @@ export default function Auth() {
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-12 text-base font-semibold"
                 disabled={isSubmitting}
               >

@@ -15,3 +15,16 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+// A separate client used ONLY for sending invitation OTPs.
+// Uses implicit flow so the magic link can be validated from the
+// invitee's browser (which doesn't have the PKCE code_verifier
+// that was generated in the admin's browser).
+export const supabaseInvite = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    storage: localStorage,
+    persistSession: false,   // don't interfere with admin's session
+    autoRefreshToken: false,
+    flowType: 'implicit',
+  }
+});
