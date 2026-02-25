@@ -12,18 +12,34 @@ export interface WalkingNotes {
   notes: string;
 }
 
+// 餵食方式（保健品 / 藥品用）
+export type FeedingMethod = '加飯裡' | '用塞的' | '直接吃' | '外用塗抹' | '膠囊打開放飯' | '磨碎加飯裡';
+
+// 飼料來源
+export type FoodSource = '自備' | '店家提供';
+
 export interface FoodInfo {
-  foodType: string;
-  feedingTime: string;
-  specialInstructions: string;
-  forbiddenFood: string;
+  description: string;         // 整體飲食說明
+  foodSource: FoodSource;      // 飼料來源
+  forbiddenFood: string;       // 禁食項目
+  remainingCount?: string;     // 剩餘數量（選填，如「共26包」）
 }
 
-export interface MedicationInfo {
-  medicationName: string;
-  frequency: string;
-  howToGive: string;
-  notes: string;
+export interface SupplementItem {
+  name: string;                // 品名
+  dosage: string;              // 劑量
+  frequency: string;           // 頻率
+  method: FeedingMethod;       // 餵食方式
+  source: FoodSource;          // 來源
+}
+
+export interface MedicationItem {
+  name: string;                // 藥名
+  dosage: string;              // 劑量
+  frequency: string;           // 頻率
+  method: FeedingMethod;       // 餵藥方式
+  condition: string;           // 使用條件/備註
+  remainingCount?: string;     // 剩餘數量（選填）
 }
 
 export interface ActivityRecord {
@@ -59,7 +75,8 @@ export interface Dog {
   currentIndoorId?: string | null;
   walkingNotes?: WalkingNotes;
   food?: FoodInfo;
-  medication?: MedicationInfo;
+  supplements?: SupplementItem[];
+  medications?: MedicationItem[];
   additionalNotes?: string;
   additional_notes?: string; // Database field
 }

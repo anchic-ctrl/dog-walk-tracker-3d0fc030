@@ -13,7 +13,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Loader2, Upload, Camera, Check, X, ChevronDown } from 'lucide-react';
+import { Loader2, Upload, Camera, Check, X, ChevronDown, Plus, Trash2 } from 'lucide-react';
+import type { FoodInfo, FoodSource, SupplementItem, MedicationItem, FeedingMethod } from '@/types/dog';
 
 type DbDog = Tables<'dogs'>;
 
@@ -21,20 +22,6 @@ interface WalkingNotes {
     pullsOnLeash: boolean;
     reactiveToOtherDogs: boolean;
     singleLeash: boolean;
-    notes: string;
-}
-
-interface FoodInfo {
-    foodType: string;
-    feedingTime: string;
-    specialInstructions: string;
-    forbiddenFood: string;
-}
-
-interface MedicationInfo {
-    medicationName: string;
-    frequency: string;
-    howToGive: string;
     notes: string;
 }
 
@@ -48,18 +35,31 @@ const defaultWalkingNotes: WalkingNotes = {
 const BREED_OPTIONS = ['米克斯', '瑪爾濟斯', '貴賓', '標準貴賓', '法鬥', '惡霸'] as const;
 const CUSTOM_BREED_VALUE = '__custom__';
 
+const FEEDING_METHOD_OPTIONS: FeedingMethod[] = ['加飯裡', '用塞的', '直接吃', '外用塗抹', '膠囊打開放飯', '磨碎加飯裡'];
+const FOOD_SOURCE_OPTIONS: FoodSource[] = ['自備', '店家提供'];
+
 const defaultFoodInfo: FoodInfo = {
-    foodType: '',
-    feedingTime: '',
-    specialInstructions: '',
+    description: '',
+    foodSource: '自備',
     forbiddenFood: '',
+    remainingCount: '',
 };
 
-const defaultMedicationInfo: MedicationInfo = {
-    medicationName: '',
+const emptySupplementItem: SupplementItem = {
+    name: '',
+    dosage: '',
     frequency: '',
-    howToGive: '',
-    notes: '',
+    method: '加飯裡',
+    source: '自備',
+};
+
+const emptyMedicationItem: MedicationItem = {
+    name: '',
+    dosage: '',
+    frequency: '',
+    method: '加飯裡',
+    condition: '',
+    remainingCount: '',
 };
 
 interface DogFormDialogProps {
@@ -93,7 +93,8 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
     // JSON field state
     const [walkingNotes, setWalkingNotes] = useState<WalkingNotes>(defaultWalkingNotes);
     const [foodInfo, setFoodInfo] = useState<FoodInfo>(defaultFoodInfo);
-    const [medicationInfo, setMedicationInfo] = useState<MedicationInfo>(defaultMedicationInfo);
+    const [supplements, setSupplements] = useState<SupplementItem[]>([]);
+    const [medications, setMedications] = useState<MedicationItem[]>([]);
 
     // Populate form when editing
     useEffect(() => {
@@ -116,8 +117,21 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             setPhotoUrl(dog.photo_url);
             setAdditionalNotes(dog.additional_notes || '');
             setWalkingNotes({ ...defaultWalkingNotes, ...(dog.walking_notes as unknown as WalkingNotes) });
-            setFoodInfo({ ...defaultFoodInfo, ...(dog.food_info as unknown as FoodInfo) });
-            setMedicationInfo({ ...defaultMedicationInfo, ...(dog.medication_info as unknown as MedicationInfo) });
+            // Backward-compatible food info parsing
+            const rawFood = dog.food_info as unknown as Record<string, any>;
+            if (rawFood) {
+                setFoodInfo({
+                    description: rawFood.description || rawFood.specialInstructions || '',
+                    foodSource: rawFood.foodSource || '自備',
+                    forbiddenFood: rawFood.forbiddenFood || '',
+                    remainingCount: rawFood.remainingCount || '',
+                });
+            } else {
+                setFoodInfo(defaultFoodInfo);
+            }
+            const rawMedInfo = dog.medication_info as unknown as Record<string, any>;
+            setSupplements(rawMedInfo?.supplements || []);
+            setMedications(rawMedInfo?.medications || []);
         } else {
             // Reset for create mode
             setName('');
@@ -134,7 +148,8 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             setAdditionalNotes('');
             setWalkingNotes(defaultWalkingNotes);
             setFoodInfo(defaultFoodInfo);
-            setMedicationInfo(defaultMedicationInfo);
+            setSupplements([]);
+            setMedications([]);
         }
     }, [dog, open]);
 
@@ -200,7 +215,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                 additional_notes: additionalNotes.trim() || null,
                 walking_notes: walkingNotes as unknown as Record<string, unknown>,
                 food_info: foodInfo as unknown as Record<string, unknown>,
-                medication_info: medicationInfo as unknown as Record<string, unknown>,
+                medication_info: { supplements, medications } as unknown as Record<string, unknown>,
             };
 
             if (isEdit && dog) {
@@ -472,29 +487,34 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                         {/* === 飲食資訊 === */}
                         <TabsContent value="food" className="space-y-4 pb-6 px-1">
                             <div className="space-y-2">
-                                <Label>飼料種類</Label>
-                                <Input
-                                    value={foodInfo.foodType}
-                                    onChange={e => setFoodInfo(prev => ({ ...prev, foodType: e.target.value }))}
-                                    placeholder="例：Royal Canin 大型犬成犬糧"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>餵食時間</Label>
-                                <Input
-                                    value={foodInfo.feedingTime}
-                                    onChange={e => setFoodInfo(prev => ({ ...prev, feedingTime: e.target.value }))}
-                                    placeholder="例：早上 8:00 / 晚上 6:00"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>特殊指示</Label>
+                                <Label>吃飯方式</Label>
                                 <Textarea
-                                    value={foodInfo.specialInstructions}
-                                    onChange={e => setFoodInfo(prev => ({ ...prev, specialInstructions: e.target.value }))}
-                                    placeholder="例：加溫水軟化飼料"
+                                    value={foodInfo.description}
+                                    onChange={e => setFoodInfo(prev => ({ ...prev, description: e.target.value }))}
+                                    placeholder="例：早晚一包鮮食 + 50~80cc水 + 2匙凍乾"
                                     rows={2}
                                 />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>飼料來源</Label>
+                                    <Select value={foodInfo.foodSource} onValueChange={(v) => setFoodInfo(prev => ({ ...prev, foodSource: v as FoodSource }))}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {FOOD_SOURCE_OPTIONS.map(opt => (
+                                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>剩餘數量（選填）</Label>
+                                    <Input
+                                        value={foodInfo.remainingCount || ''}
+                                        onChange={e => setFoodInfo(prev => ({ ...prev, remainingCount: e.target.value }))}
+                                        placeholder="例：共26包"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>禁食項目</Label>
@@ -504,42 +524,178 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                     placeholder="例：雞肉（過敏）"
                                 />
                             </div>
+
+                            <Separator />
+
+                            {/* 保健品列表 */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-base font-semibold">保健品</Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setSupplements(prev => [...prev, { ...emptySupplementItem }])}
+                                    >
+                                        <Plus className="h-4 w-4 mr-1" /> 新增
+                                    </Button>
+                                </div>
+                                {supplements.length === 0 && (
+                                    <p className="text-sm text-muted-foreground">尚無保健品</p>
+                                )}
+                                {supplements.map((item, idx) => (
+                                    <div key={idx} className="border rounded-lg p-3 space-y-3 relative">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute top-2 right-2 h-7 w-7 text-destructive hover:text-destructive"
+                                            onClick={() => setSupplements(prev => prev.filter((_, i) => i !== idx))}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                        <div className="grid grid-cols-2 gap-3 pr-8">
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">品名</Label>
+                                                <Input
+                                                    value={item.name}
+                                                    onChange={e => setSupplements(prev => prev.map((s, i) => i === idx ? { ...s, name: e.target.value } : s))}
+                                                    placeholder="例：Wakamoto"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">劑量</Label>
+                                                <Input
+                                                    value={item.dosage}
+                                                    onChange={e => setSupplements(prev => prev.map((s, i) => i === idx ? { ...s, dosage: e.target.value } : s))}
+                                                    placeholder="例：一顆"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">頻率</Label>
+                                                <Input
+                                                    value={item.frequency}
+                                                    onChange={e => setSupplements(prev => prev.map((s, i) => i === idx ? { ...s, frequency: e.target.value } : s))}
+                                                    placeholder="例：每次飯後"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">餵食方式</Label>
+                                                <Select value={item.method} onValueChange={(v) => setSupplements(prev => prev.map((s, i) => i === idx ? { ...s, method: v as FeedingMethod } : s))}>
+                                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        {FEEDING_METHOD_OPTIONS.map(opt => (
+                                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">來源</Label>
+                                                <Select value={item.source} onValueChange={(v) => setSupplements(prev => prev.map((s, i) => i === idx ? { ...s, source: v as FoodSource } : s))}>
+                                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        {FOOD_SOURCE_OPTIONS.map(opt => (
+                                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </TabsContent>
 
                         {/* === 用藥資訊 === */}
                         <TabsContent value="medication" className="space-y-4 pb-6 px-1">
-                            <div className="space-y-2">
-                                <Label>藥品名稱</Label>
-                                <Input
-                                    value={medicationInfo.medicationName}
-                                    onChange={e => setMedicationInfo(prev => ({ ...prev, medicationName: e.target.value }))}
-                                    placeholder="例：關節保健品"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>頻率</Label>
-                                <Input
-                                    value={medicationInfo.frequency}
-                                    onChange={e => setMedicationInfo(prev => ({ ...prev, frequency: e.target.value }))}
-                                    placeholder="例：每日一次"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>給藥方式</Label>
-                                <Input
-                                    value={medicationInfo.howToGive}
-                                    onChange={e => setMedicationInfo(prev => ({ ...prev, howToGive: e.target.value }))}
-                                    placeholder="例：混入食物中"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>用藥備註</Label>
-                                <Textarea
-                                    value={medicationInfo.notes}
-                                    onChange={e => setMedicationInfo(prev => ({ ...prev, notes: e.target.value }))}
-                                    placeholder="例：早餐時給予"
-                                    rows={2}
-                                />
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-base font-semibold">藥品</Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setMedications(prev => [...prev, { ...emptyMedicationItem }])}
+                                    >
+                                        <Plus className="h-4 w-4 mr-1" /> 新增藥品
+                                    </Button>
+                                </div>
+                                {medications.length === 0 && (
+                                    <p className="text-sm text-muted-foreground">尚無藥品</p>
+                                )}
+                                {medications.map((item, idx) => (
+                                    <div key={idx} className="border rounded-lg p-3 space-y-3 relative">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute top-2 right-2 h-7 w-7 text-destructive hover:text-destructive"
+                                            onClick={() => setMedications(prev => prev.filter((_, i) => i !== idx))}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                        <div className="grid grid-cols-2 gap-3 pr-8">
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">藥名</Label>
+                                                <Input
+                                                    value={item.name}
+                                                    onChange={e => setMedications(prev => prev.map((m, i) => i === idx ? { ...m, name: e.target.value } : m))}
+                                                    placeholder="例：CystoPro"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">劑量</Label>
+                                                <Input
+                                                    value={item.dosage}
+                                                    onChange={e => setMedications(prev => prev.map((m, i) => i === idx ? { ...m, dosage: e.target.value } : m))}
+                                                    placeholder="例：一顆"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">頻率</Label>
+                                                <Input
+                                                    value={item.frequency}
+                                                    onChange={e => setMedications(prev => prev.map((m, i) => i === idx ? { ...m, frequency: e.target.value } : m))}
+                                                    placeholder="例：早晚各一次"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">餵藥方式</Label>
+                                                <Select value={item.method} onValueChange={(v) => setMedications(prev => prev.map((m, i) => i === idx ? { ...m, method: v as FeedingMethod } : m))}>
+                                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        {FEEDING_METHOD_OPTIONS.map(opt => (
+                                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">使用條件 / 備註</Label>
+                                                <Input
+                                                    value={item.condition}
+                                                    onChange={e => setMedications(prev => prev.map((m, i) => i === idx ? { ...m, condition: e.target.value } : m))}
+                                                    placeholder="例：若血尿才給"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">剩餘數量（選填）</Label>
+                                                <Input
+                                                    value={item.remainingCount || ''}
+                                                    onChange={e => setMedications(prev => prev.map((m, i) => i === idx ? { ...m, remainingCount: e.target.value } : m))}
+                                                    placeholder="例：剩129顆"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </TabsContent>
                     </Tabs>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { ActivityRecord, ActivityType, PoopStatus, PeeStatus } from '@/types/dog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ const PEE_STATUS_LABELS: Record<PeeStatus, string> = {
 
 export function ActivityRecordItem({ dogId, record, type, index, isActive, autoEdit }: ActivityRecordItemProps) {
   const { updateRecord, deleteRecord } = useDogs();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [startTime, setStartTime] = useState(format(record.startTime, 'HH:mm'));
   const [endTime, setEndTime] = useState(record.endTime ? format(record.endTime, 'HH:mm') : '');
@@ -211,12 +213,16 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
       )}
       {!isActive && (
         <div className="flex gap-1 shrink-0">
-          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditing(true)}>
-            <Pencil className="w-4 h-4 text-muted-foreground" />
-          </Button>
-          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleDelete}>
-            <Trash2 className="w-4 h-4 text-danger" />
-          </Button>
+          {record.created_by === user?.id && (
+            <div className="flex gap-1 shrink-0">
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditing(true)}>
+                <Pencil className="w-4 h-4 text-muted-foreground" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleDelete}>
+                <Trash2 className="w-4 h-4 text-danger" />
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

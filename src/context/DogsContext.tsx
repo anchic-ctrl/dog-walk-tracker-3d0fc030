@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { Dog, ActivityType, ActivityRecord, PoopStatus, PeeStatus, DogSize, RoomColor, IndoorSpace, WalkingNotes, FoodInfo, MedicationInfo } from '@/types/dog';
+import { Dog, ActivityType, ActivityRecord, PoopStatus, PeeStatus, DogSize, RoomColor, IndoorSpace, WalkingNotes, FoodInfo, SupplementItem, MedicationItem } from '@/types/dog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 interface DogsContextType {
   dogs: Dog[];
@@ -30,19 +31,24 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       notes: '',
     };
 
-    const food = (dbDog.food_info as unknown as FoodInfo) || {
-      foodType: '',
-      feedingTime: '',
-      specialInstructions: '',
+    // Backward-compatible food info parsing
+    const rawFood = dbDog.food_info as unknown as Record<string, any>;
+    const food: FoodInfo = rawFood ? {
+      description: rawFood.description || rawFood.specialInstructions || '',
+      foodSource: rawFood.foodSource || '自備',
+      forbiddenFood: rawFood.forbiddenFood || '',
+      remainingCount: rawFood.remainingCount || '',
+    } : {
+      description: '',
+      foodSource: '自備',
       forbiddenFood: '',
+      remainingCount: '',
     };
 
-    const medication = (dbDog.medication_info as unknown as MedicationInfo) || {
-      medicationName: '',
-      frequency: '',
-      howToGive: '',
-      notes: '',
-    };
+    // Supplements (stored inside medication_info.supplements or as top-level)
+    const rawMedInfo = dbDog.medication_info as unknown as Record<string, any>;
+    const supplements: SupplementItem[] = rawMedInfo?.supplements || [];
+    const medications: MedicationItem[] = rawMedInfo?.medications || [];
 
     // Filter activities for this dog
     const dogActivities = activities.filter(a => a.dog_id === dbDog.id);
@@ -61,7 +67,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
           created_by: a.created_by,
           staffName: a.created_by ? userMap.get(a.created_by) || 'Unknown' : undefined
         }))
-        .sort((a, b) => b.startTime.getTime() - a.startTime.getTime()); // Newest first
+        .sort((a, b) => a.startTime.getTime() - b.startTime.getTime()); // Oldest first
     };
 
     const walkRecords = processRecords('walk');
@@ -87,7 +93,8 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       currentIndoorId: currentIndoor ? currentIndoor.id : null,
       walkingNotes,
       food,
-      medication,
+      supplements,
+      medications,
       additionalNotes: dbDog.additional_notes || '',
     };
   };
@@ -197,6 +204,8 @@ export function DogsProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const { user } = useAuth();
+
   const updateRecord = async (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null, poopStatus?: PoopStatus | null, peeStatus?: PeeStatus | null, notes?: string | null) => {
     try {
       const { error } = await supabase
@@ -208,9 +217,14 @@ export function DogsProvider({ children }: { children: ReactNode }) {
           pee_status: peeStatus,
           notes: notes,
         })
-        .eq('id', recordId);
+        .eq('id', recordId)
+        .eq('created_by', user?.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Update record failed (permission?):', error);
+        toast({ title: '操作失敗', description: '只能編輯自己的紀錄', variant: 'destructive' });
+        return;
+      }
       await refreshDogs();
     } catch (error) {
       console.error('Update record failed:', error);
@@ -223,9 +237,14 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from('activity_records')
         .delete()
-        .eq('id', recordId);
+        .eq('id', recordId)
+        .eq('created_by', user?.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete record failed (permission?):', error);
+        toast({ title: '操作失敗', description: '只能刪除自己的紀錄', variant: 'destructive' });
+        return;
+      }
       await refreshDogs();
     } catch (error) {
       console.error('Delete record failed:', error);

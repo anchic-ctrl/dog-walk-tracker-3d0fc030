@@ -6,6 +6,10 @@ import { InfoSection } from '@/components/InfoSection';
 import { WarningTag } from '@/components/WarningTag';
 import { ActivityRecordItem } from '@/components/ActivityRecordItem';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import DogFormDialog from '@/components/DogFormDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
 import {
   ArrowLeft,
   MapPin,
@@ -18,7 +22,8 @@ import {
   Play,
   Square,
   Home,
-  Dog as DogIcon
+  Dog as DogIcon,
+  Edit2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -27,8 +32,12 @@ export default function DogProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { getDog, startActivity, endActivity } = useDogs();
+  const { getDog, startActivity, endActivity, refreshDogs } = useDogs();
   const today = format(new Date(), 'yyyy年M月d日 EEEE', { locale: zhTW });
+
+  const { isAdmin } = useAuth();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [dbDog, setDbDog] = useState<Tables<'dogs'> | null>(null);
 
   // Get editRecord from URL query params (for auto-edit from home page)
   const editRecordFromUrl = searchParams.get('editRecord');
@@ -49,6 +58,17 @@ export default function DogProfile() {
   const handleEndIndoor = async (dogId: string) => {
     const endedId = await endActivity(dogId, 'indoor');
     setJustEndedRecordId(endedId);
+  };
+
+  const handleEditClick = async () => {
+    try {
+      const { data, error } = await supabase.from('dogs').select('*').eq('id', id).single();
+      if (error) throw error;
+      setDbDog(data);
+      setEditDialogOpen(true);
+    } catch (error) {
+      console.error('Failed to fetch dog for editing', error);
+    }
   };
   const dog = getDog(id || '');
 
@@ -83,9 +103,21 @@ export default function DogProfile() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-xl font-bold">狗狗資料</h1>
-          <span className="ml-auto text-sm font-medium text-muted-foreground">
-            {today}
-          </span>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground">
+              {today}
+            </span>
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleEditClick}
+                className="shrink-0 text-muted-foreground hover:text-foreground"
+              >
+                <Edit2 className="w-5 h-5" />
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -239,16 +271,26 @@ export default function DogProfile() {
         {/* Food */}
         <InfoSection title="飲食" icon={<UtensilsCrossed className="w-4 h-4" />}>
           <dl className="space-y-3 text-sm">
-            <div>
-              <dt className="text-muted-foreground">餵食時間</dt>
-              <dd className="font-medium">{dog.food.feedingTime}</dd>
-            </div>
-            {dog.food.specialInstructions && (
+            {dog.food.description && (
               <div>
-                <dt className="text-muted-foreground">餵食說明</dt>
-                <dd className="font-medium">{dog.food.specialInstructions}</dd>
+                <dt className="text-muted-foreground">吃飯方式</dt>
+                <dd className="font-medium">{dog.food.description}</dd>
               </div>
             )}
+            <div className="flex gap-4">
+              {dog.food.foodSource && (
+                <div>
+                  <dt className="text-muted-foreground">飼料來源</dt>
+                  <dd className="font-medium">{dog.food.foodSource}</dd>
+                </div>
+              )}
+              {dog.food.remainingCount && (
+                <div>
+                  <dt className="text-muted-foreground">剩餘數量</dt>
+                  <dd className="font-medium">{dog.food.remainingCount}</dd>
+                </div>
+              )}
+            </div>
             {dog.food.forbiddenFood && dog.food.forbiddenFood !== '無' && (
               <div className="bg-danger-bg rounded-lg p-3 border border-danger/30">
                 <dt className="text-danger font-semibold flex items-center gap-2">
@@ -261,33 +303,50 @@ export default function DogProfile() {
           </dl>
         </InfoSection>
 
-        {/* Medication */}
-        {dog.medication.medicationName && dog.medication.medicationName !== '無' && (
+        {/* Supplements */}
+        {dog.supplements && dog.supplements.length > 0 && (
+          <InfoSection title="保健品" icon={<Pill className="w-4 h-4" />}>
+            <div className="space-y-3">
+              {dog.supplements.map((item, idx) => (
+                <div key={idx} className="bg-background/50 rounded-lg p-3 text-sm space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">{item.name}</span>
+                    {item.source === '店家提供' && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">店家提供</span>
+                    )}
+                  </div>
+                  <div className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
+                    {item.dosage && <span>{item.dosage}</span>}
+                    {item.frequency && <span>· {item.frequency}</span>}
+                    {item.method && <span>· {item.method}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </InfoSection>
+        )}
+
+        {/* Medications */}
+        {dog.medications && dog.medications.length > 0 && (
           <InfoSection title="藥物" icon={<Pill className="w-4 h-4" />}>
-            <dl className="space-y-3 text-sm">
-              <div>
-                <dt className="text-muted-foreground">藥物名稱</dt>
-                <dd className="font-medium">{dog.medication.medicationName}</dd>
-              </div>
-              {dog.medication.frequency && (
-                <div>
-                  <dt className="text-muted-foreground">頻率</dt>
-                  <dd className="font-medium">{dog.medication.frequency}</dd>
+            <div className="space-y-3">
+              {dog.medications.map((item, idx) => (
+                <div key={idx} className="bg-background/50 rounded-lg p-3 text-sm space-y-1">
+                  <span className="font-semibold">{item.name}</span>
+                  <div className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
+                    {item.dosage && <span>{item.dosage}</span>}
+                    {item.frequency && <span>· {item.frequency}</span>}
+                    {item.method && <span>· {item.method}</span>}
+                  </div>
+                  {item.condition && (
+                    <p className="text-xs text-amber-600 mt-1">⚠️ {item.condition}</p>
+                  )}
+                  {item.remainingCount && (
+                    <p className="text-xs text-muted-foreground">剩餘：{item.remainingCount}</p>
+                  )}
                 </div>
-              )}
-              {dog.medication.howToGive && (
-                <div>
-                  <dt className="text-muted-foreground">餵藥方式</dt>
-                  <dd className="font-medium">{dog.medication.howToGive}</dd>
-                </div>
-              )}
-              {dog.medication.notes && (
-                <div>
-                  <dt className="text-muted-foreground">備註</dt>
-                  <dd className="font-medium">{dog.medication.notes}</dd>
-                </div>
-              )}
-            </dl>
+              ))}
+            </div>
           </InfoSection>
         )}
 
@@ -298,6 +357,17 @@ export default function DogProfile() {
           </InfoSection>
         )}
       </main>
+
+      {isAdmin && (
+        <DogFormDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          dog={dbDog}
+          onSuccess={() => {
+            refreshDogs();
+          }}
+        />
+      )}
     </div>
   );
 }
