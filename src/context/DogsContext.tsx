@@ -95,6 +95,8 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       food,
       supplements,
       medications,
+      checkInDate: dbDog.check_in_date || null,
+      checkOutDate: dbDog.check_out_date || null,
       additionalNotes: dbDog.additional_notes || '',
     };
   };

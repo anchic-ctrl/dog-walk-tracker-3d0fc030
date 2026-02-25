@@ -23,7 +23,8 @@ import {
   Square,
   Home,
   Dog as DogIcon,
-  Edit2
+  Edit2,
+  CalendarDays
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -146,6 +147,12 @@ export default function DogProfile() {
                 <Ruler className="w-4 h-4" />
                 體型：{sizeLabel}
               </p>
+              {(dog.checkInDate || dog.checkOutDate) && (
+                <p className="flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4" />
+                  入住：{dog.checkInDate || '?'} ~ {dog.checkOutDate || '?'}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -309,12 +316,7 @@ export default function DogProfile() {
             <div className="space-y-3">
               {dog.supplements.map((item, idx) => (
                 <div key={idx} className="bg-background/50 rounded-lg p-3 text-sm space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold">{item.name}</span>
-                    {item.source === '店家提供' && (
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">店家提供</span>
-                    )}
-                  </div>
+                  <span className="font-semibold">{item.name}</span>
                   <div className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
                     {item.dosage && <span>{item.dosage}</span>}
                     {item.frequency && <span>· {item.frequency}</span>}

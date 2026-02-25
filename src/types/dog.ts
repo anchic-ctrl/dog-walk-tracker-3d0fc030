@@ -30,7 +30,6 @@ export interface SupplementItem {
   dosage: string;              // 劑量
   frequency: string;           // 頻率
   method: FeedingMethod;       // 餵食方式
-  source: FoodSource;          // 來源
 }
 
 export interface MedicationItem {
@@ -77,6 +76,8 @@ export interface Dog {
   food?: FoodInfo;
   supplements?: SupplementItem[];
   medications?: MedicationItem[];
+  checkInDate?: string | null;  // 入住日期 (ISO date string)
+  checkOutDate?: string | null; // 退房日期 (ISO date string)
   additionalNotes?: string;
   additional_notes?: string; // Database field
 }

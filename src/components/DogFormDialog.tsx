@@ -50,7 +50,6 @@ const emptySupplementItem: SupplementItem = {
     dosage: '',
     frequency: '',
     method: '加飯裡',
-    source: '自備',
 };
 
 const emptyMedicationItem: MedicationItem = {
@@ -89,6 +88,8 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
     const [indoorSpace, setIndoorSpace] = useState<'1樓客廳' | '2樓大房間' | '2樓小房間'>('1樓客廳');
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const [additionalNotes, setAdditionalNotes] = useState('');
+    const [checkInDate, setCheckInDate] = useState('');
+    const [checkOutDate, setCheckOutDate] = useState('');
 
     // JSON field state
     const [walkingNotes, setWalkingNotes] = useState<WalkingNotes>(defaultWalkingNotes);
@@ -116,6 +117,8 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             setIndoorSpace(dog.indoor_space);
             setPhotoUrl(dog.photo_url);
             setAdditionalNotes(dog.additional_notes || '');
+            setCheckInDate(dog.check_in_date || '');
+            setCheckOutDate(dog.check_out_date || '');
             setWalkingNotes({ ...defaultWalkingNotes, ...(dog.walking_notes as unknown as WalkingNotes) });
             // Backward-compatible food info parsing
             const rawFood = dog.food_info as unknown as Record<string, any>;
@@ -146,6 +149,8 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             setIndoorSpace('1樓客廳');
             setPhotoUrl(null);
             setAdditionalNotes('');
+            setCheckInDate('');
+            setCheckOutDate('');
             setWalkingNotes(defaultWalkingNotes);
             setFoodInfo(defaultFoodInfo);
             setSupplements([]);
@@ -216,6 +221,8 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                 walking_notes: walkingNotes as unknown as Record<string, unknown>,
                 food_info: foodInfo as unknown as Record<string, unknown>,
                 medication_info: { supplements, medications } as unknown as Record<string, unknown>,
+                check_in_date: checkInDate || null,
+                check_out_date: checkOutDate || null,
             };
 
             if (isEdit && dog) {
@@ -434,6 +441,25 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                 </Select>
                             </div>
 
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>入住日期</Label>
+                                    <Input
+                                        type="date"
+                                        value={checkInDate}
+                                        onChange={e => setCheckInDate(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>退房日期</Label>
+                                    <Input
+                                        type="date"
+                                        value={checkOutDate}
+                                        onChange={e => setCheckOutDate(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
                                 <Label>其他備註</Label>
                                 <Textarea
@@ -572,7 +598,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                                 />
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-2 gap-3">
                                             <div className="space-y-1">
                                                 <Label className="text-xs">頻率</Label>
                                                 <Input
@@ -587,17 +613,6 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                                     <SelectContent>
                                                         {FEEDING_METHOD_OPTIONS.map(opt => (
-                                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <Label className="text-xs">來源</Label>
-                                                <Select value={item.source} onValueChange={(v) => setSupplements(prev => prev.map((s, i) => i === idx ? { ...s, source: v as FoodSource } : s))}>
-                                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                                    <SelectContent>
-                                                        {FOOD_SOURCE_OPTIONS.map(opt => (
                                                             <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                                                         ))}
                                                     </SelectContent>
