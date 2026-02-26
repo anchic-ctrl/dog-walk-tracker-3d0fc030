@@ -6,7 +6,7 @@ import { zhTW } from 'date-fns/locale';
 
 export default function WalkBoard() {
   const { dogs } = useDogs();
-  const today = format(new Date(), 'yyyy年M月d日 EEEE', { locale: zhTW });
+  const today = format(new Date(), 'yyyy年M月d日 (EEEEE)', { locale: zhTW });
 
   const walkingCount = dogs.filter((d) => d.currentWalkId !== null).length;
   const indoorCount = dogs.filter((d) => d.currentIndoorId !== null).length;
@@ -14,7 +14,7 @@ export default function WalkBoard() {
   return (
     <div className="min-h-screen bg-background">
       <Header title={today} />
-      
+
       <main className="px-4 pb-8">
         {/* Stats */}
         <div className="flex gap-4 py-4">

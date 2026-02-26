@@ -7,6 +7,7 @@ import { WarningTag } from '@/components/WarningTag';
 import { ActivityRecordItem } from '@/components/ActivityRecordItem';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
+import { Header } from '@/components/Header';
 import DogFormDialog from '@/components/DogFormDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
@@ -43,7 +44,7 @@ export default function DogProfile() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { getDog, startActivity, endActivity, refreshDogs } = useDogs();
-  const today = format(new Date(), 'yyyy年M月d日 EEEE', { locale: zhTW });
+  const today = format(new Date(), 'yyyy年M月d日 (EEEEE)', { locale: zhTW });
 
   const { isAdmin } = useAuth();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -101,23 +102,11 @@ export default function DogProfile() {
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/')}
-            className="shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-xl font-bold">狗狗資料</h1>
-          <span className="text-sm font-medium text-muted-foreground ml-auto">
-            {today}
-          </span>
-        </div>
-      </header>
+      <Header title="狗狗資料" showBack onBack={() => navigate('/')}>
+        <span className="text-sm font-medium text-muted-foreground mr-2">
+          {today}
+        </span>
+      </Header>
 
       <main className="px-4 space-y-4 mt-4">
         {/* Basic Info */}

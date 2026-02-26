@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -112,29 +113,17 @@ const DogManagement = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <Dog className="h-6 w-6 text-primary" />
-                狗狗管理
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                共 {dogs.length} 隻狗狗
-              </p>
-            </div>
-          </div>
-          <Button onClick={handleCreate} className="font-semibold">
+      <Header title="狗狗管理" showBack onBack={() => navigate('/')} hideManagementIcons={true}>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-muted-foreground hidden sm:block">
+            共 {dogs.length} 隻狗狗
+          </p>
+          <Button onClick={handleCreate} className="font-semibold px-3 h-9">
             <Plus className="h-4 w-4 mr-1" />
             新增狗狗
           </Button>
         </div>
-      </div>
+      </Header>
 
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Search */}

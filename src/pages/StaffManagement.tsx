@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, supabaseInvite } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Header } from '@/components/Header';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -304,25 +305,15 @@ const StaffManagement = () => {
 
     return (
         <div className="min-h-screen bg-background">
-            {/* Header */}
-            <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b">
-                <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
-                    <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                    <div className="flex-1">
-                        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                            <Shield className="h-6 w-6 text-primary" />
-                            員工權限管理
-                        </h1>
-                        <p className="text-sm text-muted-foreground">共 {members.length} 位員工</p>
-                    </div>
-                    <Button onClick={() => setInviteOpen(true)} className="font-semibold">
+            <Header title="員工權限管理" showBack onBack={() => navigate('/')} hideManagementIcons={true}>
+                <div className="flex items-center gap-4">
+                    <p className="text-sm text-muted-foreground hidden sm:block">共 {members.length} 位員工</p>
+                    <Button onClick={() => setInviteOpen(true)} className="font-semibold px-3 h-9">
                         <UserPlus className="h-4 w-4 mr-2" />
                         邀請員工
                     </Button>
                 </div>
-            </div>
+            </Header>
 
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <div className="bg-card border rounded-lg overflow-hidden shadow-sm">
