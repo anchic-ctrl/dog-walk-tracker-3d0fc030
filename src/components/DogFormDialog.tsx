@@ -85,7 +85,6 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
     const [size, setSize] = useState<'S' | 'M' | 'L'>('M');
     const [roomColor, setRoomColor] = useState<'黃' | '綠' | '藍' | '紅'>('黃');
     const [roomNumber, setRoomNumber] = useState<number>(1);
-    const [indoorSpace, setIndoorSpace] = useState<'1樓客廳' | '2樓大房間' | '2樓小房間'>('1樓客廳');
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const [additionalNotes, setAdditionalNotes] = useState('');
     const [checkInDate, setCheckInDate] = useState('');
@@ -114,7 +113,6 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             setSize(dog.size);
             setRoomColor(dog.room_color);
             setRoomNumber(dog.room_number);
-            setIndoorSpace(dog.indoor_space);
             setPhotoUrl(dog.photo_url);
             setAdditionalNotes(dog.additional_notes || '');
             setCheckInDate(dog.check_in_date || '');
@@ -146,7 +144,6 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             setSize('M');
             setRoomColor('黃');
             setRoomNumber(1);
-            setIndoorSpace('1樓客廳');
             setPhotoUrl(null);
             setAdditionalNotes('');
             setCheckInDate('');
@@ -215,7 +212,6 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                 size,
                 room_color: roomColor,
                 room_number: roomNumber,
-                indoor_space: indoorSpace,
                 photo_url: photoUrl,
                 additional_notes: additionalNotes.trim() || null,
                 walking_notes: walkingNotes as unknown as Record<string, unknown>,
@@ -394,6 +390,25 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                 </div>
                             </div>
 
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>入住日期</Label>
+                                    <Input
+                                        type="date"
+                                        value={checkInDate}
+                                        onChange={e => setCheckInDate(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>退房日期</Label>
+                                    <Input
+                                        type="date"
+                                        value={checkOutDate}
+                                        onChange={e => setCheckOutDate(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <Label>體型</Label>
@@ -425,37 +440,6 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                         min={1}
                                         value={roomNumber}
                                         onChange={e => setRoomNumber(Number(e.target.value))}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>室內活動空間</Label>
-                                <Select value={indoorSpace} onValueChange={(v) => setIndoorSpace(v as typeof indoorSpace)}>
-                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="1樓客廳">1樓客廳</SelectItem>
-                                        <SelectItem value="2樓大房間">2樓大房間</SelectItem>
-                                        <SelectItem value="2樓小房間">2樓小房間</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>入住日期</Label>
-                                    <Input
-                                        type="date"
-                                        value={checkInDate}
-                                        onChange={e => setCheckInDate(e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>退房日期</Label>
-                                    <Input
-                                        type="date"
-                                        value={checkOutDate}
-                                        onChange={e => setCheckOutDate(e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -728,7 +712,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                         )}
                     </Button>
                 </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            </DialogContent >
+        </Dialog >
     );
 }

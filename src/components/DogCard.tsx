@@ -7,6 +7,15 @@ import { useNavigate } from 'react-router-dom';
 import { Play, StopCircle, AlertTriangle, Home } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
+import { IndoorSpace } from '@/types/dog';
 
 interface DogCardProps {
   dog: Dog;
@@ -80,7 +89,7 @@ export function DogCard({ dog }: DogCardProps) {
             >
               <h3 className="font-semibold text-lg leading-tight">{dog.name}</h3>
               <p className="text-sm text-muted-foreground">
-                {dog.roomColor}{dog.roomNumber} · {dog.indoorSpace}
+                {dog.roomColor}{dog.roomNumber}
               </p>
             </button>
             <div className="flex flex-col gap-1 items-end">
@@ -152,15 +161,27 @@ export function DogCard({ dog }: DogCardProps) {
             結束放風
           </Button>
         ) : (
-          <Button
-            onClick={() => startActivity(dog.id, 'indoor')}
-            variant="outline"
-            className="h-12 text-sm font-semibold hover:bg-warning/10 hover:border-warning hover:text-warning"
-            disabled={isWalking}
-          >
-            <Home className="w-4 h-4 mr-1.5" />
-            開始室內放風
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-12 text-sm font-semibold hover:bg-warning/10 hover:border-warning hover:text-warning"
+                disabled={isWalking}
+              >
+                <Home className="w-4 h-4 mr-1.5" />
+                開始室內放風
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center">
+              <DropdownMenuLabel className="text-center">選擇放風空間</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {(['1樓客廳', '2樓大房間', '2樓小房間'] as IndoorSpace[]).map((space) => (
+                <DropdownMenuItem key={space} className="justify-center" onClick={() => startActivity(dog.id, 'indoor', space)}>
+                  {space}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 

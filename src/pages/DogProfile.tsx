@@ -26,8 +26,17 @@ import {
   Edit2,
   CalendarDays
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
+import { IndoorSpace } from '@/types/dog';
 
 export default function DogProfile() {
   const { id } = useParams<{ id: string }>();
@@ -104,21 +113,9 @@ export default function DogProfile() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-xl font-bold">狗狗資料</h1>
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">
-              {today}
-            </span>
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleEditClick}
-                className="shrink-0 text-muted-foreground hover:text-foreground"
-              >
-                <Edit2 className="w-5 h-5" />
-              </Button>
-            )}
-          </div>
+          <span className="text-sm font-medium text-muted-foreground ml-auto">
+            {today}
+          </span>
         </div>
       </header>
 
@@ -131,8 +128,18 @@ export default function DogProfile() {
             className="w-24 h-24 rounded-2xl object-cover shadow-lg"
           />
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center justify-between mb-2">
               <h2 className="text-2xl font-bold">{dog.name}</h2>
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleEditClick}
+                  className="shrink-0 text-muted-foreground hover:text-foreground"
+                >
+                  <Edit2 className="w-5 h-5" />
+                </Button>
+              )}
             </div>
             <div className="space-y-1 text-sm text-muted-foreground">
               <p className="flex items-center gap-2">
@@ -141,7 +148,7 @@ export default function DogProfile() {
               </p>
               <p className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                {dog.roomColor}{dog.roomNumber} · {dog.indoorSpace}
+                {dog.roomColor}{dog.roomNumber}
               </p>
               <p className="flex items-center gap-2">
                 <Ruler className="w-4 h-4" />
@@ -201,15 +208,27 @@ export default function DogProfile() {
               結束放風
             </Button>
           ) : (
-            <Button
-              onClick={() => startActivity(dog.id, 'indoor')}
-              variant="outline"
-              className="h-14 text-base font-semibold hover:bg-warning/10 hover:border-warning hover:text-warning"
-              disabled={isWalking}
-            >
-              <Home className="w-5 h-5 mr-2" />
-              開始室內放風
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-14 text-base font-semibold hover:bg-warning/10 hover:border-warning hover:text-warning"
+                  disabled={isWalking}
+                >
+                  <Home className="w-5 h-5 mr-2" />
+                  開始室內放風
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-[200px]">
+                <DropdownMenuLabel className="text-center">選擇放風空間</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {(['1樓客廳', '2樓大房間', '2樓小房間'] as IndoorSpace[]).map((space) => (
+                  <DropdownMenuItem key={space} className="justify-center" onClick={() => startActivity(dog.id, 'indoor', space)}>
+                    {space}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
 
@@ -360,16 +379,18 @@ export default function DogProfile() {
         )}
       </main>
 
-      {isAdmin && (
-        <DogFormDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          dog={dbDog}
-          onSuccess={() => {
-            refreshDogs();
-          }}
-        />
-      )}
-    </div>
+      {
+        isAdmin && (
+          <DogFormDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            dog={dbDog}
+            onSuccess={() => {
+              refreshDogs();
+            }}
+          />
+        )
+      }
+    </div >
   );
 }

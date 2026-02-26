@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Plus, Edit2, Trash2, Dog, ArrowLeft, Search } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, Dog, ArrowLeft, Search, CalendarDays } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import {
   AlertDialog,
@@ -195,8 +195,9 @@ const DogManagement = () => {
                 </CardHeader>
 
                 <CardContent className="space-y-3 pb-4">
-                  <div className="text-sm text-muted-foreground">
-                    <span>室內空間：{dog.indoor_space}</span>
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4" />
+                    <span>{dog.check_in_date || '?'} ~ {dog.check_out_date || '?'}</span>
                   </div>
 
                   <div className="flex gap-2">

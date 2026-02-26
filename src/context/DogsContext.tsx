@@ -9,7 +9,7 @@ interface DogsContextType {
   isLoading: boolean;
   refreshDogs: () => Promise<void>;
   getDog: (id: string) => Dog | undefined;
-  startActivity: (id: string, type: ActivityType) => Promise<void>;
+  startActivity: (id: string, type: ActivityType, indoorSpace?: IndoorSpace) => Promise<void>;
   endActivity: (id: string, type: ActivityType) => Promise<string | null>;
   updateRecord: (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null, poopStatus?: PoopStatus | null, peeStatus?: PeeStatus | null, notes?: string | null) => Promise<void>;
   deleteRecord: (dogId: string, type: ActivityType, recordId: string) => Promise<void>;
@@ -65,7 +65,8 @@ export function DogsProvider({ children }: { children: ReactNode }) {
           peeStatus: a.pee_status as PeeStatus,
           notes: a.notes,
           created_by: a.created_by,
-          staffName: a.created_by ? userMap.get(a.created_by) || 'Unknown' : undefined
+          staffName: a.created_by ? userMap.get(a.created_by) || 'Unknown' : undefined,
+          indoorSpace: a.indoor_space as IndoorSpace
         }))
         .sort((a, b) => a.startTime.getTime() - b.startTime.getTime()); // Oldest first
     };
@@ -85,7 +86,6 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       photo: dbDog.photo_url || '',
       roomColor: dbDog.room_color as RoomColor,
       roomNumber: dbDog.room_number as 1 | 2 | 3,
-      indoorSpace: dbDog.indoor_space as IndoorSpace,
       size: dbDog.size as DogSize,
       walkRecords,
       indoorRecords,
@@ -163,7 +163,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
 
   const getDog = (id: string) => dogs.find(dog => dog.id === id);
 
-  const startActivity = async (id: string, type: ActivityType) => {
+  const startActivity = async (id: string, type: ActivityType, indoorSpace?: IndoorSpace) => {
     try {
       const { error } = await supabase
         .from('activity_records')
@@ -171,6 +171,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
           dog_id: id,
           activity_kind: type,
           start_time: new Date().toISOString(),
+          indoor_space: indoorSpace
         });
 
       if (error) throw error;

@@ -50,6 +50,7 @@ export interface ActivityRecord {
   notes?: string | null;
   created_by?: string | null;
   staffName?: string | null;
+  indoorSpace?: IndoorSpace; // 每一次放風的空間
 }
 
 export type RoomColor = '黃' | '綠' | '藍' | '紅';
@@ -65,8 +66,6 @@ export interface Dog {
   room_color?: RoomColor; // Database field
   roomNumber?: 1 | 2 | 3;
   room_number?: 1 | 2 | 3; // Database field
-  indoorSpace?: IndoorSpace;
-  indoor_space?: IndoorSpace; // Database field
   size: DogSize;
   walkRecords?: ActivityRecord[];
   indoorRecords?: ActivityRecord[];

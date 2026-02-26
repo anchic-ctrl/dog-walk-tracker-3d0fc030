@@ -190,6 +190,11 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
               {record.staffName}
             </span>
           )}
+          {record.indoorSpace && (
+            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full ml-auto">
+              {record.indoorSpace}
+            </span>
+          )}
         </div>
         {/* Show poop & pee status for all records */}
         {(record.poopStatus || record.peeStatus) && (
