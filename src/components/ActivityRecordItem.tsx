@@ -111,16 +111,6 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
               placeholder="進行中"
             />
           </div>
-          <div className="flex gap-2 w-full sm:w-auto sm:ml-auto justify-end">
-            <Button size="sm" variant="default" className="h-8 shrink-0 flex-1 sm:flex-none" onClick={(e) => { e.stopPropagation(); handleSave(); }}>
-              <Check className="w-4 h-4 mr-1" />
-              儲存紀錄
-            </Button>
-            <Button size="sm" variant="ghost" className="h-8 shrink-0 flex-1 sm:flex-none" onClick={(e) => { e.stopPropagation(); handleCancel(); }}>
-              <X className="w-4 h-4 mr-1" />
-              取消
-            </Button>
-          </div>
         </div>
 
         {/* Poop status */}
@@ -171,6 +161,17 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
             className="min-h-[60px] text-sm"
           />
         </div>
+
+        <div className="flex gap-2 justify-end pt-3 border-t border-border/50">
+          <Button size="sm" variant="ghost" className="h-8 shrink-0 flex-1 sm:flex-none" onClick={(e) => { e.stopPropagation(); handleCancel(); }}>
+            <X className="w-4 h-4 mr-1" />
+            取消
+          </Button>
+          <Button size="sm" variant="default" className="h-8 shrink-0 flex-1 sm:flex-none" onClick={(e) => { e.stopPropagation(); handleSave(); }}>
+            <Check className="w-4 h-4 mr-1" />
+            儲存紀錄
+          </Button>
+        </div>
       </div>
     );
   }
@@ -178,26 +179,30 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
   return (
     <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium shrink-0">第 {index + 1} 次{typeLabel}</span>
-          <span className="text-sm">
-            {format(record.startTime, 'a h:mm', { locale: zhTW })}
-            {' — '}
-            {record.endTime
-              ? format(record.endTime, 'a h:mm', { locale: zhTW })
-              : <span className="text-status-walking">進行中</span>
-            }
-          </span>
-          {record.staffName && (
-            <span className="text-xs text-muted-foreground border-l pl-2 ml-2">
-              {record.staffName}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium shrink-0">第 {index + 1} 次{typeLabel}</span>
+            <span className="text-sm whitespace-nowrap text-muted-foreground font-medium">
+              {format(record.startTime, 'a h:mm', { locale: zhTW })}
+              {' — '}
+              {record.endTime
+                ? format(record.endTime, 'a h:mm', { locale: zhTW })
+                : <span className="text-status-walking">進行中</span>
+              }
             </span>
-          )}
-          {record.indoorSpace && (
-            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full ml-auto">
-              {record.indoorSpace}
-            </span>
-          )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap text-muted-foreground/80 sm:text-muted-foreground">
+            {record.staffName && (
+              <span className="text-xs sm:border-l sm:pl-2">
+                {record.staffName}
+              </span>
+            )}
+            {record.indoorSpace && (
+              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full ml-auto sm:ml-0">
+                {record.indoorSpace}
+              </span>
+            )}
+          </div>
         </div>
         {(record.poopStatus || record.peeStatus) && (
           <p className="text-xs text-muted-foreground mt-1">
