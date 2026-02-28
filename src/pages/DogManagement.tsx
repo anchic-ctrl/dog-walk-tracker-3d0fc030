@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, Edit2, Trash2, Dog, ArrowLeft, Search, CalendarDays } from 'lucide-react';
+import { format } from 'date-fns';
 import { Tables } from '@/integrations/supabase/types';
 import {
   AlertDialog,
@@ -26,6 +27,23 @@ type DbDog = Tables<'dogs'>;
 
 const sizeLabel: Record<string, string> = { S: '小型', M: '中型', L: '大型' };
 const roomColorEmoji: Record<string, string> = { '黃': '🟡', '綠': '🟢', '藍': '🔵', '紅': '🔴' };
+
+// Compute stay status for display
+function getStayStatus(dog: DbDog): { label: string; className: string } | null {
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+  if (!dog.check_in_date && !dog.check_out_date) return null;
+
+  if (dog.check_in_date && dog.check_in_date > todayStr) {
+    return { label: '即將入住', className: 'bg-blue-100 text-blue-700' };
+  }
+
+  if (dog.check_out_date && dog.check_out_date < todayStr) {
+    return { label: '已退房', className: 'bg-gray-100 text-gray-500' };
+  }
+
+  return { label: '住宿中', className: 'bg-green-100 text-green-700' };
+}
 
 const DogManagement = () => {
   const [dogs, setDogs] = useState<DbDog[]>([]);
@@ -192,6 +210,14 @@ const DogManagement = () => {
                   <div className="text-sm text-muted-foreground flex items-center gap-2">
                     <CalendarDays className="h-4 w-4" />
                     <span>{dog.check_in_date || '?'} ~ {dog.check_out_date || '?'}</span>
+                    {(() => {
+                      const status = getStayStatus(dog);
+                      return status ? (
+                        <Badge className={`ml-auto text-[10px] px-1.5 py-0 font-semibold ${status.className} border-0`}>
+                          {status.label}
+                        </Badge>
+                      ) : null;
+                    })()}
                   </div>
 
                   <div className="flex gap-2">

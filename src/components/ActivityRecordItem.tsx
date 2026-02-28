@@ -18,6 +18,7 @@ interface ActivityRecordItemProps {
   index: number;
   isActive?: boolean;
   autoEdit?: boolean;
+  readOnly?: boolean;
 }
 
 const POOP_STATUS_LABELS: Record<PoopStatus, string> = {
@@ -32,7 +33,7 @@ const PEE_STATUS_LABELS: Record<PeeStatus, string> = {
   no: '沒小便',
 };
 
-export function ActivityRecordItem({ dogId, record, type, index, isActive, autoEdit }: ActivityRecordItemProps) {
+export function ActivityRecordItem({ dogId, record, type, index, isActive, autoEdit, readOnly }: ActivityRecordItemProps) {
   const { updateRecord, deleteRecord } = useDogs();
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -55,14 +56,14 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
   }, [autoEdit, record.endTime]);
 
   const handleSave = () => {
-    const today = new Date();
+    const recordDate = new Date(record.startTime);
     const [startHour, startMin] = startTime.split(':').map(Number);
-    const newStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), startHour, startMin);
+    const newStart = new Date(recordDate.getFullYear(), recordDate.getMonth(), recordDate.getDate(), startHour, startMin);
 
     let newEnd: Date | null = null;
     if (endTime) {
       const [endHour, endMin] = endTime.split(':').map(Number);
-      newEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), endHour, endMin);
+      newEnd = new Date(recordDate.getFullYear(), recordDate.getMonth(), recordDate.getDate(), endHour, endMin);
     }
 
     updateRecord(
@@ -196,7 +197,6 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
             </span>
           )}
         </div>
-        {/* Show poop & pee status for all records */}
         {(record.poopStatus || record.peeStatus) && (
           <p className="text-xs text-muted-foreground mt-1">
             {record.poopStatus && <>💩 {POOP_STATUS_LABELS[record.poopStatus]}</>}
@@ -204,7 +204,6 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
             {record.peeStatus && <>💧 {PEE_STATUS_LABELS[record.peeStatus]}</>}
           </p>
         )}
-        {/* Show notes if present */}
         {record.notes && (
           <p className="text-xs text-muted-foreground mt-1">
             📝 {record.notes}
@@ -216,7 +215,7 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
           進行中
         </span>
       )}
-      {!isActive && (
+      {!isActive && !readOnly && (
         <div className="flex gap-1 shrink-0">
           {record.created_by === user?.id && (
             <div className="flex gap-1 shrink-0">

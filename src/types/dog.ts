@@ -56,6 +56,13 @@ export interface ActivityRecord {
 export type RoomColor = '黃' | '綠' | '藍' | '紅';
 export type IndoorSpace = '1樓客廳' | '2樓大房間' | '2樓小房間';
 
+export interface DayHistory {
+  date: string;           // ISO date string, e.g. "2026-02-25"
+  dateLabel: string;      // Display label, e.g. "2/25 (二)"
+  walkRecords: ActivityRecord[];
+  indoorRecords: ActivityRecord[];
+}
+
 export interface Dog {
   id: string;
   name: string;
@@ -79,4 +86,5 @@ export interface Dog {
   checkOutDate?: string | null; // 退房日期 (ISO date string)
   additionalNotes?: string;
   additional_notes?: string; // Database field
+  activityHistory?: DayHistory[]; // 前幾天的歷史紀錄 (按日期分組，最近的在前)
 }

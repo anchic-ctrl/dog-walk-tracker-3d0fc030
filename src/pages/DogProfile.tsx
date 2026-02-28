@@ -25,7 +25,10 @@ import {
   Home,
   Dog as DogIcon,
   Edit2,
-  CalendarDays
+  CalendarDays,
+  History,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -53,6 +56,7 @@ export default function DogProfile() {
   // Get editRecord from URL query params (for auto-edit from home page)
   const editRecordFromUrl = searchParams.get('editRecord');
   const [justEndedRecordId, setJustEndedRecordId] = useState<string | null>(editRecordFromUrl);
+  const [showHistory, setShowHistory] = useState(false);
 
   // Clear URL param after reading it (to avoid re-triggering on navigation)
   useEffect(() => {
@@ -244,7 +248,7 @@ export default function DogProfile() {
         {/* Indoor Records */}
         {dog.indoorRecords.length > 0 && (
           <div className="bg-muted rounded-xl p-4 space-y-2">
-            <p className="text-sm font-medium mb-3">放風記錄</p>
+            <p className="text-sm font-medium mb-3">當天放風記錄</p>
             <div className="space-y-2">
               {dog.indoorRecords.map((record, index) => (
                 <ActivityRecordItem
@@ -258,6 +262,67 @@ export default function DogProfile() {
                 />
               ))}
             </div>
+          </div>
+        )}
+
+        {/* History Records */}
+        {dog.activityHistory && dog.activityHistory.length > 0 && (
+          <div className="space-y-2">
+            <Button
+              variant="ghost"
+              className="w-full flex justify-between items-center py-4 h-auto text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              onClick={() => setShowHistory(!showHistory)}
+            >
+              <div className="flex items-center gap-2">
+                <History className="w-4 h-4" />
+                <span className="font-medium">查看前 4 天紀錄</span>
+              </div>
+              {showHistory ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+
+            {showHistory && (
+              <div className="space-y-4 pt-2">
+                {dog.activityHistory.map((day) => (
+                  <div key={day.date} className="bg-muted/30 rounded-xl p-4 space-y-3 border border-border/50">
+                    <p className="text-sm font-bold text-muted-foreground border-b border-border/50 pb-2 mb-2">
+                      {day.dateLabel}
+                    </p>
+
+                    {day.walkRecords.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/50">散步紀錄</p>
+                        {day.walkRecords.map((record, index) => (
+                          <ActivityRecordItem
+                            key={record.id}
+                            dogId={dog.id}
+                            record={record}
+                            type="walk"
+                            index={index}
+                            readOnly
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {day.indoorRecords.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/50">放風紀錄</p>
+                        {day.indoorRecords.map((record, index) => (
+                          <ActivityRecordItem
+                            key={record.id}
+                            dogId={dog.id}
+                            record={record}
+                            type="indoor"
+                            index={index}
+                            readOnly
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

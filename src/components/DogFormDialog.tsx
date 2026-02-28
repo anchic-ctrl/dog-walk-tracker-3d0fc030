@@ -203,6 +203,10 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             toast({ title: '請輸入品種', variant: 'destructive' });
             return;
         }
+        if (checkInDate && checkOutDate && checkOutDate < checkInDate) {
+            toast({ title: '日期錯誤', description: '退房日期不能早於入住日期', variant: 'destructive' });
+            return;
+        }
 
         setSaving(true);
         try {
