@@ -22,6 +22,7 @@ interface WalkingNotes {
     pullsOnLeash: boolean;
     reactiveToOtherDogs: boolean;
     singleLeash: boolean;
+    chasesCars: boolean;
     notes: string;
 }
 
@@ -29,6 +30,7 @@ const defaultWalkingNotes: WalkingNotes = {
     pullsOnLeash: false,
     reactiveToOtherDogs: false,
     singleLeash: false,
+    chasesCars: false,
     notes: '',
 };
 
@@ -483,6 +485,14 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                     <Switch
                                         checked={walkingNotes.singleLeash}
                                         onCheckedChange={v => setWalkingNotes(prev => ({ ...prev, singleLeash: v }))}
+                                    />
+                                </div>
+                                <Separator />
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-base">追車</Label>
+                                    <Switch
+                                        checked={walkingNotes.chasesCars}
+                                        onCheckedChange={v => setWalkingNotes(prev => ({ ...prev, chasesCars: v }))}
                                     />
                                 </div>
                                 <Separator />

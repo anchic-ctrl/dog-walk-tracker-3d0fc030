@@ -336,10 +336,23 @@ export default function DogProfile() {
               : 'default'
           }
         >
-          <div className="flex flex-wrap gap-2 mb-3">
-            <WarningTag label="會拉扯牽繩" active={dog.walkingNotes.pullsOnLeash} />
-            <WarningTag label="對其他狗有反應" active={dog.walkingNotes.reactiveToOtherDogs} />
-            <WarningTag label="單牽" active={dog.walkingNotes.singleLeash} />
+          <div className="grid grid-cols-2 gap-y-5 gap-x-2 sm:gap-x-4 mb-4 mt-2 px-1 text-sm sm:text-[15px]">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-foreground">拉扯牽繩：</span>
+              <span className="font-semibold text-foreground/80">{dog.walkingNotes.pullsOnLeash ? '✓' : 'X'}</span>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-foreground">對其他狗有反應：</span>
+              <span className="font-semibold text-foreground/80">{dog.walkingNotes.reactiveToOtherDogs ? '✓' : 'X'}</span>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-foreground">單牽：</span>
+              <span className="font-semibold text-foreground/80">{dog.walkingNotes.singleLeash ? '✓' : 'X'}</span>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-foreground">追車：</span>
+              <span className="font-semibold text-foreground/80">{dog.walkingNotes.chasesCars ? '✓' : 'X'}</span>
+            </div>
           </div>
           {dog.walkingNotes.notes && (
             <p className="text-sm text-foreground bg-background/50 rounded-lg p-3">

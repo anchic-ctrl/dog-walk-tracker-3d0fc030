@@ -9,6 +9,7 @@ export interface WalkingNotes {
   pullsOnLeash: boolean;
   reactiveToOtherDogs: boolean;
   singleLeash: boolean;
+  chasesCars: boolean;
   notes: string;
 }
 

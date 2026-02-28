@@ -93,28 +93,30 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
   if (isEditing) {
     return (
       <div className="p-3 bg-muted/50 rounded-lg space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium shrink-0">第 {index + 1} 次</span>
-          <Input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            className="w-24 h-8 text-sm"
-          />
-          <span className="text-muted-foreground">—</span>
-          <Input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            className="w-24 h-8 text-sm"
-            placeholder="進行中"
-          />
-          <div className="flex gap-2 ml-auto">
-            <Button size="sm" variant="default" className="h-8" onClick={(e) => { e.stopPropagation(); handleSave(); }}>
+        <div className="flex flex-wrap items-center gap-y-3 gap-x-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium shrink-0">第 {index + 1} 次</span>
+            <Input
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="w-24 h-8 text-sm"
+            />
+            <span className="text-muted-foreground shrink-0">—</span>
+            <Input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="w-24 h-8 text-sm"
+              placeholder="進行中"
+            />
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto sm:ml-auto justify-end">
+            <Button size="sm" variant="default" className="h-8 shrink-0 flex-1 sm:flex-none" onClick={(e) => { e.stopPropagation(); handleSave(); }}>
               <Check className="w-4 h-4 mr-1" />
               儲存紀錄
             </Button>
-            <Button size="sm" variant="ghost" className="h-8" onClick={(e) => { e.stopPropagation(); handleCancel(); }}>
+            <Button size="sm" variant="ghost" className="h-8 shrink-0 flex-1 sm:flex-none" onClick={(e) => { e.stopPropagation(); handleCancel(); }}>
               <X className="w-4 h-4 mr-1" />
               取消
             </Button>
