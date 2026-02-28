@@ -8,10 +8,11 @@ interface HeaderProps {
   showBack?: boolean;
   onBack?: () => void;
   children?: React.ReactNode;
+  actions?: React.ReactNode;
   hideManagementIcons?: boolean;
 }
 
-export function Header({ title, showBack, onBack, children, hideManagementIcons }: HeaderProps) {
+export function Header({ title, showBack, onBack, children, actions, hideManagementIcons }: HeaderProps) {
   const { isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -29,7 +30,7 @@ export function Header({ title, showBack, onBack, children, hideManagementIcons 
             onClick={() => navigate('/')}
             title="回到首頁"
           >
-            <Dog className="w-6 h-6 text-primary-foreground" />
+            <Dog className="w-5 h-5 text-primary-foreground" />
           </div>
         )}
 
@@ -38,37 +39,42 @@ export function Header({ title, showBack, onBack, children, hideManagementIcons 
             variant="ghost"
             size="icon"
             onClick={onBack || (() => navigate(-1))}
-            className="shrink-0 [&_svg]:size-6"
+            className="shrink-0 [&_svg]:size-5"
           >
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowLeft className="w-5 h-5" />
           </Button>
         )}
 
-        <div className="flex-1 min-w-0 ml-1">
+        <div className="flex-1 min-w-0 ml-1 flex flex-col justify-center">
           <h1 className="text-lg sm:text-xl font-bold leading-tight">{title}</h1>
+          {children && (
+            <div className="flex items-center mt-0.5">
+              {children}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-1">
-          {children}
+          {actions}
           {isAdmin && !hideManagementIcons && (
             <>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/manage')}
-                className="text-muted-foreground hover:text-foreground [&_svg]:size-6"
+                className="text-muted-foreground hover:text-foreground [&_svg]:size-5"
                 title="管理狗狗"
               >
-                <PawPrint className="w-6 h-6" />
+                <PawPrint className="w-5 h-5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/staff')}
-                className="text-muted-foreground hover:text-foreground [&_svg]:size-6"
+                className="text-muted-foreground hover:text-foreground [&_svg]:size-5"
                 title="管理員工"
               >
-                <Users className="w-6 h-6" />
+                <Users className="w-5 h-5" />
               </Button>
             </>
           )}
@@ -76,10 +82,10 @@ export function Header({ title, showBack, onBack, children, hideManagementIcons 
             variant="ghost"
             size="icon"
             onClick={handleSignOut}
-            className="text-muted-foreground hover:text-destructive [&_svg]:size-6"
+            className="text-muted-foreground hover:text-destructive [&_svg]:size-5"
             title="登出"
           >
-            <LogOut className="w-6 h-6" />
+            <LogOut className="w-5 h-5" />
           </Button>
         </div>
       </div>

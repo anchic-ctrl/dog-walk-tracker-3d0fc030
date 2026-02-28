@@ -103,7 +103,7 @@ export default function DogProfile() {
   return (
     <div className="min-h-screen bg-background pb-8">
       <Header title="狗狗資料" showBack onBack={() => navigate('/')}>
-        <span className="text-sm font-medium text-muted-foreground mr-2">
+        <span className="text-xs sm:text-sm font-medium text-muted-foreground">
           {today}
         </span>
       </Header>

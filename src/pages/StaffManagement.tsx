@@ -305,14 +305,19 @@ const StaffManagement = () => {
 
     return (
         <div className="min-h-screen bg-background">
-            <Header title="員工權限管理" showBack onBack={() => navigate('/')} hideManagementIcons={true}>
-                <div className="flex items-center gap-4">
-                    <p className="text-sm text-muted-foreground hidden sm:block">共 {members.length} 位員工</p>
+            <Header
+                title="員工權限管理"
+                showBack
+                onBack={() => navigate('/')}
+                hideManagementIcons={true}
+                actions={
                     <Button onClick={() => setInviteOpen(true)} className="font-semibold px-3 h-9">
                         <UserPlus className="h-4 w-4 mr-2" />
                         邀請員工
                     </Button>
-                </div>
+                }
+            >
+                <p className="text-sm text-muted-foreground">共 {members.length} 位員工</p>
             </Header>
 
             <div className="max-w-4xl mx-auto px-4 py-8">

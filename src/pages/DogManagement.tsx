@@ -113,16 +113,21 @@ const DogManagement = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header title="狗狗管理" showBack onBack={() => navigate('/')} hideManagementIcons={true}>
-        <div className="flex items-center gap-4">
-          <p className="text-sm text-muted-foreground hidden sm:block">
-            共 {dogs.length} 隻狗狗
-          </p>
+      <Header
+        title="狗狗管理"
+        showBack
+        onBack={() => navigate('/')}
+        hideManagementIcons={true}
+        actions={
           <Button onClick={handleCreate} className="font-semibold px-3 h-9">
             <Plus className="h-4 w-4 mr-1" />
             新增狗狗
           </Button>
-        </div>
+        }
+      >
+        <p className="text-sm text-muted-foreground whitespace-nowrap">
+          共 {dogs.length} 隻狗狗
+        </p>
       </Header>
 
       <div className="max-w-6xl mx-auto px-4 py-6">
