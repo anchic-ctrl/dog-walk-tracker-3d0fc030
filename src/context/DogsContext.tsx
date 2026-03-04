@@ -236,6 +236,24 @@ export function DogsProvider({ children }: { children: ReactNode }) {
     refreshDogs();
   }, [refreshDogs]);
 
+  // Realtime subscription: sync across all employees
+  useEffect(() => {
+    const channel = supabase
+      .channel('activity_records_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'activity_records' },
+        () => {
+          refreshDogs();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refreshDogs]);
+
   // Search allDogs so dog profile pages work even for inactive dogs
   const getDog = (id: string) => allDogs.find(dog => dog.id === id);
 
