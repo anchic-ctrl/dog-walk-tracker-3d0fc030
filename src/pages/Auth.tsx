@@ -110,6 +110,7 @@ export default function Auth() {
   };
 
   if (showConfirmation) {
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="w-full max-w-md space-y-6">
@@ -201,8 +202,10 @@ export default function Auth() {
                   '取得登入連結'
                 )}
               </Button>
+
             </form>
           </CardContent>
+
         </Card>
       </div>
     </div>
