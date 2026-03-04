@@ -370,7 +370,7 @@ export default function DogProfile() {
           >
             <div className="flex gap-2 mb-2">
               <WarningTag label="需要尿布墊" active={dog.indoorNotes.requiresPeePad} />
-              <WarningTag label="包尿布 (禮貌帶)" active={dog.indoorNotes.requiresDiaper} />
+              <WarningTag label="包尿布" active={dog.indoorNotes.requiresDiaper} />
             </div>
           </InfoSection>
         )}

@@ -51,7 +51,9 @@ export function DogCard({ dog }: DogCardProps) {
     : null;
 
   const hasWarnings = dog.walkingNotes.singleLeash ||
-    dog.walkingNotes.reactiveToOtherDogs;
+    dog.walkingNotes.reactiveToOtherDogs ||
+    dog.indoorNotes?.requiresPeePad ||
+    dog.indoorNotes?.requiresDiaper;
 
   const walkDuration = currentWalkRecord
     ? formatDistanceToNow(currentWalkRecord.startTime, { addSuffix: false, locale: zhTW })
@@ -104,12 +106,14 @@ export function DogCard({ dog }: DogCardProps) {
 
           {/* Warnings */}
           {hasWarnings && (
-            <div className="flex items-center gap-1.5 mt-2 text-warning">
+            <div className="flex items-center gap-1.5 mt-2 text-warning flex-wrap">
               <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span className="text-xs font-medium truncate">
+              <span className="text-xs font-medium">
                 {[
                   dog.walkingNotes.singleLeash && '單牽',
-                  dog.walkingNotes.reactiveToOtherDogs && '對其他狗有反應',
+                  dog.walkingNotes.reactiveToOtherDogs && '對狗有反應',
+                  dog.indoorNotes?.requiresPeePad && '尿布墊',
+                  dog.indoorNotes?.requiresDiaper && '包尿布',
                 ].filter(Boolean).join(' · ')}
               </span>
             </div>

@@ -473,7 +473,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                         />
                                     </div>
                                     <div className="flex justify-between items-center bg-muted/30 p-3 rounded-lg border border-border/50">
-                                        <Label className="cursor-pointer" htmlFor="requires-diaper">包尿布 (禮貌帶)</Label>
+                                        <Label className="cursor-pointer" htmlFor="requires-diaper">包尿布</Label>
                                         <Switch
                                             id="requires-diaper"
                                             checked={indoorNotes.requiresDiaper}
