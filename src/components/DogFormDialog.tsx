@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Loader2, Upload, Camera, Check, X, ChevronDown, Plus, Trash2 } from 'lucide-react';
-import type { FoodInfo, FoodSource, SupplementItem, MedicationItem, FeedingMethod } from '@/types/dog';
+import type { FoodInfo, FoodSource, SupplementItem, MedicationItem, FeedingMethod, IndoorNotes } from '@/types/dog';
 
 type DbDog = Tables<'dogs'>;
 
@@ -32,6 +32,11 @@ const defaultWalkingNotes: WalkingNotes = {
     singleLeash: false,
     chasesCars: false,
     notes: '',
+};
+
+const defaultIndoorNotes: IndoorNotes = {
+    requiresPeePad: false,
+    requiresDiaper: false,
 };
 
 const BREED_OPTIONS = ['米克斯', '瑪爾濟斯', '貴賓', '標準貴賓', '法鬥', '惡霸'] as const;
@@ -94,6 +99,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
 
     // JSON field state
     const [walkingNotes, setWalkingNotes] = useState<WalkingNotes>(defaultWalkingNotes);
+    const [indoorNotes, setIndoorNotes] = useState<IndoorNotes>(defaultIndoorNotes);
     const [foodInfo, setFoodInfo] = useState<FoodInfo>(defaultFoodInfo);
     const [supplements, setSupplements] = useState<SupplementItem[]>([]);
     const [medications, setMedications] = useState<MedicationItem[]>([]);
@@ -120,6 +126,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             setCheckInDate(dog.check_in_date || '');
             setCheckOutDate(dog.check_out_date || '');
             setWalkingNotes({ ...defaultWalkingNotes, ...(dog.walking_notes as unknown as WalkingNotes) });
+            setIndoorNotes({ ...defaultIndoorNotes, ...(dog.indoor_notes as unknown as IndoorNotes) });
             // Backward-compatible food info parsing
             const rawFood = dog.food_info as unknown as Record<string, any>;
             if (rawFood) {
@@ -151,6 +158,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
             setCheckInDate('');
             setCheckOutDate('');
             setWalkingNotes(defaultWalkingNotes);
+            setIndoorNotes(defaultIndoorNotes);
             setFoodInfo(defaultFoodInfo);
             setSupplements([]);
             setMedications([]);
@@ -221,6 +229,7 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                 photo_url: photoUrl,
                 additional_notes: additionalNotes.trim() || null,
                 walking_notes: walkingNotes as unknown as Record<string, unknown>,
+                indoor_notes: indoorNotes as unknown as Record<string, unknown>,
                 food_info: foodInfo as unknown as Record<string, unknown>,
                 medication_info: { supplements, medications } as unknown as Record<string, unknown>,
                 check_in_date: checkInDate || null,
@@ -449,6 +458,32 @@ export default function DogFormDialog({ open, onOpenChange, dog, onSuccess }: Do
                                     />
                                 </div>
                             </div>
+
+                            <Separator />
+
+                            <div className="space-y-4">
+                                <Label className="text-base">室內放風需求</Label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex justify-between items-center bg-muted/30 p-3 rounded-lg border border-border/50">
+                                        <Label className="cursor-pointer" htmlFor="requires-pee-pad">需要尿布墊</Label>
+                                        <Switch
+                                            id="requires-pee-pad"
+                                            checked={indoorNotes.requiresPeePad}
+                                            onCheckedChange={v => setIndoorNotes(prev => ({ ...prev, requiresPeePad: v }))}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between items-center bg-muted/30 p-3 rounded-lg border border-border/50">
+                                        <Label className="cursor-pointer" htmlFor="requires-diaper">包尿布 (禮貌帶)</Label>
+                                        <Switch
+                                            id="requires-diaper"
+                                            checked={indoorNotes.requiresDiaper}
+                                            onCheckedChange={v => setIndoorNotes(prev => ({ ...prev, requiresDiaper: v }))}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Separator />
 
                             <div className="space-y-2">
                                 <Label>其他備註</Label>

@@ -14,7 +14,7 @@ interface DogsContextType {
   getDog: (id: string) => Dog | undefined;
   startActivity: (id: string, type: ActivityType, indoorSpace?: IndoorSpace) => Promise<void>;
   endActivity: (id: string, type: ActivityType) => Promise<string | null>;
-  updateRecord: (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null, poopStatus?: PoopStatus | null, peeStatus?: PeeStatus | null, notes?: string | null) => Promise<void>;
+  updateRecord: (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null, poopStatus?: PoopStatus | null, peeStatus?: PeeStatus | null, toiletLocation?: string | null, notes?: string | null) => Promise<void>;
   deleteRecord: (dogId: string, type: ActivityType, recordId: string) => Promise<void>;
 }
 
@@ -51,6 +51,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       pullsOnLeash: false,
       reactiveToOtherDogs: false,
       singleLeash: false,
+      chasesCars: false,
       notes: '',
     };
 
@@ -73,6 +74,11 @@ export function DogsProvider({ children }: { children: ReactNode }) {
     const supplements: SupplementItem[] = rawMedInfo?.supplements || [];
     const medications: MedicationItem[] = rawMedInfo?.medications || [];
 
+    const indoorNotes = (dbDog.indoor_notes as unknown as typeof dogActivities[0]['indoorNotes']) || {
+      requiresPeePad: false,
+      requiresDiaper: false,
+    };
+
     // Filter activities for this dog
     const dogActivities = activities.filter(a => a.dog_id === dbDog.id);
 
@@ -83,6 +89,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       endTime: a.end_time ? new Date(a.end_time) : null,
       poopStatus: a.poop_status as PoopStatus,
       peeStatus: a.pee_status as PeeStatus,
+      toiletLocation: a.toilet_location,
       notes: a.notes,
       created_by: a.created_by,
       staffName: a.created_by ? userMap.get(a.created_by) || 'Unknown' : undefined,
@@ -153,6 +160,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
       currentWalkId: currentWalk ? currentWalk.id : null,
       currentIndoorId: currentIndoor ? currentIndoor.id : null,
       walkingNotes,
+      indoorNotes,
       food,
       supplements,
       medications,
@@ -277,7 +285,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
 
   const { user } = useAuth();
 
-  const updateRecord = async (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null, poopStatus?: PoopStatus | null, peeStatus?: PeeStatus | null, notes?: string | null) => {
+  const updateRecord = async (dogId: string, type: ActivityType, recordId: string, startTime: Date, endTime: Date | null, poopStatus?: PoopStatus | null, peeStatus?: PeeStatus | null, toiletLocation?: string | null, notes?: string | null) => {
     try {
       const { error } = await supabase
         .from('activity_records')
@@ -286,6 +294,7 @@ export function DogsProvider({ children }: { children: ReactNode }) {
           end_time: endTime ? endTime.toISOString() : null,
           poop_status: poopStatus,
           pee_status: peeStatus,
+          toilet_location: toiletLocation,
           notes: notes,
         })
         .eq('id', recordId)

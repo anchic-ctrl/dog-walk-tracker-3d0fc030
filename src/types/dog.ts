@@ -13,6 +13,11 @@ export interface WalkingNotes {
   notes: string;
 }
 
+export interface IndoorNotes {
+  requiresPeePad: boolean;
+  requiresDiaper: boolean;
+}
+
 // 餵食方式（保健品 / 藥品用）
 export type FeedingMethod = '加飯裡' | '用塞的' | '直接吃' | '外用塗抹' | '膠囊打開放飯' | '磨碎加飯裡';
 
@@ -48,6 +53,7 @@ export interface ActivityRecord {
   endTime: Date | null;
   poopStatus?: PoopStatus | null;
   peeStatus?: PeeStatus | null;
+  toiletLocation?: string | null;
   notes?: string | null;
   created_by?: string | null;
   staffName?: string | null;
@@ -80,6 +86,7 @@ export interface Dog {
   currentWalkId?: string | null;
   currentIndoorId?: string | null;
   walkingNotes?: WalkingNotes;
+  indoorNotes?: IndoorNotes;
   food?: FoodInfo;
   supplements?: SupplementItem[];
   medications?: MedicationItem[];

@@ -26,6 +26,8 @@ export type Database = {
           pee_status: Database["public"]["Enums"]["pee_status"] | null
           poop_status: Database["public"]["Enums"]["poop_status"] | null
           start_time: string
+          indoor_space: Database["public"]["Enums"]["indoor_space"] | null
+          toilet_location: string | null
         }
         Insert: {
           activity_kind: Database["public"]["Enums"]["activity_kind"]
@@ -38,6 +40,8 @@ export type Database = {
           pee_status?: Database["public"]["Enums"]["pee_status"] | null
           poop_status?: Database["public"]["Enums"]["poop_status"] | null
           start_time?: string
+          indoor_space?: Database["public"]["Enums"]["indoor_space"] | null
+          toilet_location?: string | null
         }
         Update: {
           activity_kind?: Database["public"]["Enums"]["activity_kind"]
@@ -50,6 +54,8 @@ export type Database = {
           pee_status?: Database["public"]["Enums"]["pee_status"] | null
           poop_status?: Database["public"]["Enums"]["poop_status"] | null
           start_time?: string
+          indoor_space?: Database["public"]["Enums"]["indoor_space"] | null
+          toilet_location?: string | null
         }
         Relationships: [
           {
@@ -70,7 +76,7 @@ export type Database = {
           created_at: string
           food_info: Json
           id: string
-          indoor_space: Database["public"]["Enums"]["indoor_space"]
+          indoor_notes: Json | null
           medication_info: Json
           name: string
           photo_url: string | null
@@ -88,7 +94,7 @@ export type Database = {
           created_at?: string
           food_info?: Json
           id?: string
-          indoor_space: Database["public"]["Enums"]["indoor_space"]
+          indoor_notes?: Json | null
           medication_info?: Json
           name: string
           photo_url?: string | null
@@ -106,7 +112,7 @@ export type Database = {
           created_at?: string
           food_info?: Json
           id?: string
-          indoor_space?: Database["public"]["Enums"]["indoor_space"]
+          indoor_notes?: Json | null
           medication_info?: Json
           name?: string
           photo_url?: string | null

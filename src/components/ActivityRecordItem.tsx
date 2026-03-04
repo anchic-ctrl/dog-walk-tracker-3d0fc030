@@ -33,6 +33,12 @@ const PEE_STATUS_LABELS: Record<PeeStatus, string> = {
   no: '沒小便',
 };
 
+const TOILET_LOCATION_LABELS: Record<string, string> = {
+  floor: '地板',
+  pad: '尿布墊',
+  diaper: '尿布裡',
+};
+
 export function ActivityRecordItem({ dogId, record, type, index, isActive, autoEdit, readOnly }: ActivityRecordItemProps) {
   const { updateRecord, deleteRecord } = useDogs();
   const { user } = useAuth();
@@ -41,6 +47,7 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
   const [endTime, setEndTime] = useState(record.endTime ? format(record.endTime, 'HH:mm') : '');
   const [poopStatus, setPoopStatus] = useState<PoopStatus | null>(record.poopStatus || 'none');
   const [peeStatus, setPeeStatus] = useState<PeeStatus>(record.peeStatus || 'yes');
+  const [toiletLocation, setToiletLocation] = useState<string | null>(record.toiletLocation || null);
   const [notes, setNotes] = useState(record.notes || '');
 
   const autoEditConsumed = useRef(false);
@@ -70,16 +77,22 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
       dogId, type, record.id, newStart, newEnd,
       poopStatus,
       peeStatus,
+      toiletLocation,
       notes.trim() || null
     );
     setIsEditing(false);
   };
 
   const handleCancel = () => {
+    if (autoEdit) {
+      handleDelete();
+      return;
+    }
     setStartTime(format(record.startTime, 'HH:mm'));
     setEndTime(record.endTime ? format(record.endTime, 'HH:mm') : '');
     setPoopStatus(record.poopStatus || null);
     setPeeStatus(record.peeStatus || 'yes');
+    setToiletLocation(record.toiletLocation || null);
     setNotes(record.notes || '');
     setIsEditing(false);
   };
@@ -151,6 +164,27 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
           </RadioGroup>
         </div>
 
+        {/* Toilet Location (Indoor only) */}
+        {type === 'indoor' && (
+          <div className="pt-2 border-t border-border/50">
+            <p className="text-xs text-muted-foreground mb-2">排泄位置</p>
+            <RadioGroup
+              value={toiletLocation || ''}
+              onValueChange={(value) => setToiletLocation(value)}
+              className="flex gap-4 flex-wrap"
+            >
+              {(Object.keys(TOILET_LOCATION_LABELS)).map((loc) => (
+                <div key={loc} className="flex items-center space-x-2">
+                  <RadioGroupItem value={loc} id={`${record.id}-toilet-${loc}`} />
+                  <Label htmlFor={`${record.id}-toilet-${loc}`} className="text-sm cursor-pointer">
+                    {TOILET_LOCATION_LABELS[loc]}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+        )}
+
         {/* Notes */}
         <div className="pt-2 border-t border-border/50">
           <p className="text-xs text-muted-foreground mb-2">其他備註</p>
@@ -204,11 +238,13 @@ export function ActivityRecordItem({ dogId, record, type, index, isActive, autoE
             )}
           </div>
         </div>
-        {(record.poopStatus || record.peeStatus) && (
+        {(record.poopStatus || record.peeStatus || record.toiletLocation) && (
           <p className="text-xs text-muted-foreground mt-1">
             {record.poopStatus && <>💩 {POOP_STATUS_LABELS[record.poopStatus]}</>}
             {record.poopStatus && record.peeStatus && '  '}
             {record.peeStatus && <>💧 {PEE_STATUS_LABELS[record.peeStatus]}</>}
+            {(record.poopStatus || record.peeStatus) && record.toiletLocation && '  '}
+            {record.toiletLocation && <>📍 {TOILET_LOCATION_LABELS[record.toiletLocation]}</>}
           </p>
         )}
         {record.notes && (

@@ -361,6 +361,20 @@ export default function DogProfile() {
           )}
         </InfoSection>
 
+        {/* Indoor Notes */}
+        {dog.indoorNotes && (dog.indoorNotes.requiresPeePad || dog.indoorNotes.requiresDiaper) && (
+          <InfoSection
+            title="室內放風需求"
+            icon={<Home className="w-4 h-4" />}
+            variant="warning"
+          >
+            <div className="flex gap-2 mb-2">
+              <WarningTag label="需要尿布墊" active={dog.indoorNotes.requiresPeePad} />
+              <WarningTag label="包尿布 (禮貌帶)" active={dog.indoorNotes.requiresDiaper} />
+            </div>
+          </InfoSection>
+        )}
+
         {/* Food */}
         <InfoSection title="飲食" icon={<UtensilsCrossed className="w-4 h-4" />}>
           <dl className="space-y-3 text-sm">
